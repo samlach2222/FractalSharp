@@ -22,19 +22,24 @@ namespace CSharpBrot
         /**
         * Method to get conjugate
         */
-        public void conjugate() { imag = -imag; }
+        public void Conjugate() 
+        { 
+            imag = -imag; 
+        }
 
         /**
          * Method to add a complex number in current complex number
          * @param c complex to add
          * @return sum of the 2 complexes
          */
-        public Complex add(Complex c)
+        public Complex Add(Complex c)
         {
             // Le résultat est aussi un complexe, il faut donc introduire une autre variable de type Complex
-            Complex sum = new Complex();
-            sum.real = this.real + c.real;
-            sum.imag = this.imag + c.imag;
+            Complex sum = new()
+            {
+                real = this.real + c.real,
+                imag = this.imag + c.imag
+            };
             return sum;
         }
 
@@ -43,7 +48,7 @@ namespace CSharpBrot
          * @param c divider of the division
          * @return quotient of the division
          */
-        public Complex divide(Complex c)
+        public Complex Divide(Complex c)
         {
             double x = this.real * c.real + this.imag * c.imag;
             double y = this.imag * c.real - this.real * c.imag;
@@ -58,12 +63,14 @@ namespace CSharpBrot
          * @param c complex to substract
          * @return substract
          */
-        public Complex minus(Complex c)
+        public Complex Minus(Complex c)
         {
             // The result is also a complex number, so we have to introduce a new Complex
-            Complex sum = new Complex();
-            sum.real = this.real - c.real;
-            sum.imag = this.imag - c.imag;
+            Complex sum = new()
+            {
+                real = this.real - c.real,
+                imag = this.imag - c.imag
+            };
             return sum;
         }
 
@@ -72,11 +79,13 @@ namespace CSharpBrot
          * @param c multiplier
          * @return product of the 2 complexes
          */
-        public Complex multiply(Complex c)
+        public Complex Multiply(Complex c)
         {
-            Complex product = new Complex();
-            product.real = (this.real * c.real) - (this.imag * c.imag);
-            product.imag = (this.real * c.imag) + (this.imag * c.real);
+            Complex product = new()
+            {
+                real = (this.real * c.real) - (this.imag * c.imag),
+                imag = (this.real * c.imag) + (this.imag * c.real)
+            };
             return product;
         }
 
@@ -85,11 +94,13 @@ namespace CSharpBrot
          * @param d multiplier
          * @return product of the complex number and the double number
          */
-        public Complex multiply(double d)
+        public Complex Multiply(double d)
         {
-            Complex product = new Complex();
-            product.real = this.real * d;
-            product.imag = this.imag * d;
+            Complex product = new()
+            {
+                real = this.real * d,
+                imag = this.imag * d
+            };
             return product;
         }
 
@@ -97,7 +108,7 @@ namespace CSharpBrot
          * Getter of the imaginary part of the current complex number
          * @return imaginary part of the current complex number
          */
-        public double getImag()
+        public double GetImag()
         {
             return imag;
         }
@@ -106,7 +117,7 @@ namespace CSharpBrot
          * Setter of the imaginary part of the current complex number
          * @param imaginary part of the current complex number
          */
-        public void setImag(double imag)
+        public void SetImag(double imag)
         {
             this.imag = imag;
         }
@@ -115,7 +126,7 @@ namespace CSharpBrot
          * Getter of the real part of the current complex number
          * @return real part of the current complex number
          */
-        public double getReal()
+        public double GetReal()
         {
             return real;
         }
@@ -124,9 +135,18 @@ namespace CSharpBrot
          * Getter of the real part of the current complex number
          * @param real part of the current complex number
          */
-        public void setReal(double real)
+        public void SetReal(double real)
         {
             this.real = real;
+        }
+
+        /**
+         * Return the modulus fot the current complex number
+         * @return modulus of the current complex number
+         */
+        public double Modulus()
+        {
+            return Math.Sqrt(real * real + imag * imag);
         }
     }
 }
