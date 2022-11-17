@@ -1,10 +1,5 @@
-﻿using Microsoft.VisualBasic;
-using System.Collections.Concurrent;
-using System.Collections;
-using System.Windows.Forms;
+﻿using FractalSharp;
 using MPI;
-using FractalSharp;
-using CSharpBrot;
 
 class Program
 {
@@ -48,7 +43,7 @@ class Program
                     PixelColor px = GetPixelColor(iXPos, iYPos);
                     localPixels[i] = px;
                 }
-                
+
                 // Merge table with rank 0 values
                 for (int i = 1; i < localPixels.Length; i++)
                 {
@@ -87,7 +82,7 @@ class Program
                 }
 
                 PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // 1st table cell contains rank
-                
+
                 localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // RANK N
                 for (int i = 1; i < localPixels.Length; i++)
                 {
@@ -107,7 +102,7 @@ class Program
     private static void DisplayPixels(PixelColor[,] pixels)
     {
         Bitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1));
-        
+
         for (int i = 0; i < pixels.GetLength(0); i++)
         {
             for (int j = 0; j < pixels.GetLength(1); j++)

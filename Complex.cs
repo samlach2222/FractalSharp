@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CSharpBrot
+﻿namespace FractalSharp
 {
     internal class Complex
     {
         private double real = 0; // default value 0
         private double imag = 0; // default value 0
-        
+
         public Complex() { } // empty constructor --> 0 + 0i 
 
         public Complex(double real, double imag)
@@ -22,9 +16,9 @@ namespace CSharpBrot
         /**
         * Method to get conjugate
         */
-        public void Conjugate() 
-        { 
-            imag = -imag; 
+        public void Conjugate()
+        {
+            imag = -imag;
         }
 
         /**
