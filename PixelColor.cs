@@ -55,5 +55,10 @@ namespace FractalSharp
             info.AddValue("Green", green);
             info.AddValue("Blue", blue);
         }
+
+        public Boolean IsDiverging()
+        {
+            return (red != 0 || green != 0 || blue != 0);
+        }
     }
 }

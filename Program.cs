@@ -1,6 +1,5 @@
 ﻿using FractalSharp;
 using MPI;
-using System.ComponentModel.Design;
 
 class Program
 {
@@ -102,12 +101,19 @@ class Program
     private static void DisplayPixels(PixelColor[,] pixels)
     {
         Bitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1));
+        using (Graphics g = Graphics.FromImage(bitmap))
+        {
+            g.Clear(Color.Black);
+        }
 
         for (int i = 0; i < pixels.GetLength(0); i++)
         {
             for (int j = 0; j < pixels.GetLength(1); j++)
             {
-                bitmap.SetPixel(i, j, Color.FromArgb(pixels[i, j].Red, pixels[i, j].Green, pixels[i, j].Blue));
+                if (pixels[i, j].IsDiverging())
+                {
+                    bitmap.SetPixel(i, j, Color.FromArgb(pixels[i, j].Red, pixels[i, j].Green, pixels[i, j].Blue));
+                }
             }
         }
         bitmap.Save("m.bmp");
