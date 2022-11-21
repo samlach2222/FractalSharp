@@ -1,15 +1,18 @@
 ﻿using FractalSharp;
 using MPI;
+using System.Drawing;
+using System.Windows.Forms;
 
 class Program
 {
+    public static Form form = new();
+    public static PictureBox pictureBox = new();
+
     static void Main(string[] args)
     {
         using (MPI.Environment environment = new MPI.Environment(ref args))
         {
             Intracommunicator comm = Communicator.world;
-
-            // variables
 
             //get width and height of the window
 
@@ -32,6 +35,9 @@ class Program
 
             if (comm.Rank == 0)
             {
+                // initialize form
+                InitializeForm(pixelWidth, pixelHeight);
+
                 // create table of pixels
                 PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // 1st table cell contains rank
                 localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // RANK 0
@@ -98,8 +104,25 @@ class Program
         }
     }
 
+    private static void InitializeForm(int pixelWidth, int pixelHeight)
+    {
+        int titleBarHeight = form.Height - form.ClientSize.Height; // get the size of the form title bar
+        form.Size = new(pixelWidth, pixelHeight + titleBarHeight);
+        // change form name
+        form.Text = "FractalSharp";
+        // form create zone for display image
+        pictureBox.Size = new(pixelWidth, pixelHeight);
+        pictureBox.Location = new(0, 0);
+        new Thread(delegate ()
+            {
+                Application.Run(form);
+            }).Start();
+    }
+
     private static void DisplayPixels(PixelColor[,] pixels)
     {
+        // Create the Bitmap
+        
         Bitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1));
         using (Graphics g = Graphics.FromImage(bitmap))
         {
@@ -116,7 +139,15 @@ class Program
                 }
             }
         }
-        bitmap.Save("m.bmp");
+
+        // Invoke displayThread to pass image to the form
+        form.Invoke(new Action(() =>
+        {
+            pictureBox.Image = bitmap;
+            form.Controls.Add(pictureBox);
+        }));
+
+        // TODO : ZOOM IN AND OUT
     }
 
     private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
@@ -144,7 +175,15 @@ class Program
         }
         else
         {
-            return new PixelColor(255, 255, 255);
+
+            // color smoothing mandelbroth (a little bit)
+            double log_zn = Math.Log(z.Modulus());
+            double nu = Math.Log(log_zn / Math.Log(2)) / Math.Log(2);
+            iteration = iteration + 1 - (int)nu;
+
+            // gray gradient with color smoothing
+            int color = (int)(255.0 * Math.Sqrt((double)iteration / (double)maxIteration));
+            return new PixelColor(color, color, color);
         }
     }
 }
@@ -156,8 +195,10 @@ class Program
  * https://nanohub.org/resources/5641/download/2008.09.04
  * 
  * TO RUN : 
- * mpiexec -n 2 FractalSharp.exe
+ * mpiexec -n 8 FractalSharp.exe
  * 
  * TO DO : 
- * Restes à gérer !!
+ * User have to be able to Zoom in the bitmap
+ * Loading animation before the bitmap is displayed
+ * Optimizations
  */
