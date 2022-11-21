@@ -1,5 +1,6 @@
 ﻿using FractalSharp;
 using MPI;
+using System.ComponentModel.Design;
 
 class Program
 {
@@ -10,20 +11,19 @@ class Program
             Intracommunicator comm = Communicator.world;
 
             // variables
-            double maxX = 1.0;
-            double minX = -1.0;
-            double maxY = 1.0;
-            double minY = -1.0;
 
             //get width and height of the window
 
-            int screenWidth = Screen.PrimaryScreen.Bounds.Width;
-            int screenHeight = Screen.PrimaryScreen.Bounds.Height;
+            int screenWidth = Screen.PrimaryScreen.Bounds.Width; // get width of the screen
+            int screenHeight = Screen.PrimaryScreen.Bounds.Height; // get height of the screen
 
-            double ratioWindow = 0.8;
+            const double ratioWindow = 0.8; // ratio of the window (80% of the screen)
 
-            int pixelWidth = (int)(screenWidth * ratioWindow);
-            int pixelHeight = (int)(screenHeight * ratioWindow);
+            int pixelWidth = (int)(screenWidth * ratioWindow);  // get width of the window
+            int pixelHeight = (int)(screenHeight * ratioWindow);    // get height of the window
+
+            double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
+            double rangeY = rangeX * pixelHeight / pixelWidth;
 
             // create table of pixels
             PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // final table with all results
@@ -40,7 +40,7 @@ class Program
                 {
                     int iXPos = (i - 1) % pixelWidth;
                     int iYPos = (i - 1) / pixelWidth;
-                    PixelColor px = GetPixelColor(iXPos, iYPos);
+                    PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, rangeX, rangeY);
                     localPixels[i] = px;
                 }
 
@@ -88,7 +88,7 @@ class Program
                 {
                     int iXPos = ((i - 1) + posFirstValue) % pixelWidth;
                     int iYPos = ((i - 1) + posFirstValue) / pixelWidth;
-                    PixelColor px = GetPixelColor(iXPos, iYPos);
+                    PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, rangeX, rangeY);
                     localPixels[i] = px;
                 }
 
@@ -113,11 +113,14 @@ class Program
         bitmap.Save("m.bmp");
     }
 
-    private static PixelColor GetPixelColor(int iXPos, int iYpos)
+    private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
     {
         // calculate if Mandelbrot suite diverge
 
-        Complex c = new(iXPos, iYpos);
+        double rangeXPos = (double)iXpos / (double)pixelWidth * rangeX - rangeX/2.0;
+        double rangeYPos = (double)iYpos / (double)pixelHeight * rangeY - rangeY/2.0;
+
+        Complex c = new(rangeXPos, rangeYPos);
         Complex z = new(0, 0);
 
         int iteration = 0;
