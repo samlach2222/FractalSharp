@@ -107,7 +107,10 @@ class Program
         {
             for (int j = 0; j < pixels.GetLength(1); j++)
             {
-                bitmap.SetPixel(i, j, Color.FromArgb(pixels[i, j].Red, pixels[i, j].Green, pixels[i, j].Blue));
+                if (pixels[i, j].IsNotDiverging())
+                {
+                    bitmap.SetPixel(i, j, Color.FromArgb(pixels[i, j].Red, pixels[i, j].Green, pixels[i, j].Blue));
+                }
             }
         }
         bitmap.Save("m.bmp");
