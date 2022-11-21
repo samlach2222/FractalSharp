@@ -32,7 +32,6 @@ class Program
             int screenWidthWithDpi = Screen.PrimaryScreen.Bounds.Width; // get width of the screen scaled with dpi
             int screenHeightWithDpi = Screen.PrimaryScreen.Bounds.Height; // get height of the screen scaled with dpi
 
-
             const double ratioWindow = 0.8; // ratio of the window (80% of the screen)
 
             int pixelWidth = (int)(screenWidth * ratioWindow);  // get width of the window
@@ -41,40 +40,30 @@ class Program
             double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
             double rangeY = rangeX * pixelHeight / pixelWidth;
 
-            // create table of pixels
-            PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // final table with all results
-
             int numberOfPixels = pixelWidth * pixelHeight;
             int nPerProc = numberOfPixels / comm.Size;
 
             if (comm.Rank == 0)
             {
+                // create table of pixels
+                PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // final table with all results
+
                 // initialize form
                 InitializeForm(pixelWidth, pixelHeight);
 
                 // create table of pixels
-                PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // 1st table cell contains rank
-                localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // RANK 0
-                for (int i = 1; i < localPixels.Length; i++)
+                for (int i = 0 ; i < nPerProc; i++)
                 {
-                    int iXPos = (i - 1) % pixelWidth;
-                    int iYPos = (i - 1) / pixelWidth;
+                    int iXPos = i % pixelWidth;
+                    int iYPos = i / pixelWidth;
                     PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, rangeX, rangeY);
-                    localPixels[i] = px;
-                }
-
-                // Merge table with rank 0 values
-                for (int i = 1; i < localPixels.Length; i++)
-                {
-                    int iXPos = (i - 1) % pixelWidth;
-                    int iYPos = (i - 1) / pixelWidth;
-                    pixels[iXPos, iYPos] = localPixels[i];
+                    pixels[iXPos, iYPos] = px;
                 }
 
                 // Receive localPixels from other ranks
                 for (int i = 1; i < comm.Size; i++)
                 {
-                    comm.Receive<PixelColor[]>(i, 0, out localPixels);
+                    comm.Receive<PixelColor[]>(i, 0, out PixelColor[] localPixels);
                     int rank = localPixels[0].Red;
                     int posFirstValue = rank * nPerProc;
 
