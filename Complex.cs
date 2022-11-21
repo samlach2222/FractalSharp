@@ -142,5 +142,16 @@
         {
             return Math.Sqrt(real * real + imag * imag);
         }
+
+        /**
+         * Return a new complex using the formula z = z^2 + c
+         * @param c complex added for calculating the next iteration
+         * @return next iteration of mandelbrot
+         */
+        public Complex NextIteration(Complex c)
+        {
+            // Do the multiplication and addition at the same time to gain time
+            return new Complex((this.real * this.real) - (this.imag * this.imag) + c.real, (this.real * this.imag) + (this.imag * this.real) + c.imag);
+        }
     }
 }

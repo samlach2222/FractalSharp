@@ -124,12 +124,12 @@ class Program
         Complex z = new(0, 0);
 
         int iteration = 0;
-        int maxIteration = 1000;
+        const int maxIteration = 1000;
         while (iteration < maxIteration && z.Modulus() <= 2) // AND Z mod 2 < 2
         {
             // max iteration --> if not diverge
             // z mod 2 < 2 --> if diverge
-            z = z.Multiply(z).Add(c);
+            z = z.NextIteration(c);
             iteration++;
         }
         if (iteration == maxIteration)
