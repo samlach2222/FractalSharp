@@ -1,12 +1,20 @@
 ﻿using FractalSharp;
 using MPI;
-using System.Drawing;
-using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 class Program
 {
     public static Form form = new();
     public static PictureBox pictureBox = new();
+
+    // Necessary for getting the scaling factor
+    [DllImport("gdi32.dll")]
+    static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+    public enum DeviceCap
+    {
+        VERTRES = 10,
+        DESKTOPVERTRES = 117,
+    }
 
     static void Main(string[] args)
     {
@@ -14,10 +22,16 @@ class Program
         {
             Intracommunicator comm = Communicator.world;
 
-            //get width and height of the window
+            float scaleFactor = GetScalingFactor();  // get the scaling factor
 
-            int screenWidth = Screen.PrimaryScreen.Bounds.Width; // get width of the screen
-            int screenHeight = Screen.PrimaryScreen.Bounds.Height; // get height of the screen
+            // get width and height of the window and screen
+
+            int screenWidth = (int)(Screen.PrimaryScreen.Bounds.Width * scaleFactor); // get true width of the screen
+            int screenHeight = (int)(Screen.PrimaryScreen.Bounds.Height * scaleFactor); // get true height of the screen
+
+            int screenWidthWithDpi = Screen.PrimaryScreen.Bounds.Width; // get width of the screen scaled with dpi
+            int screenHeightWithDpi = Screen.PrimaryScreen.Bounds.Height; // get height of the screen scaled with dpi
+
 
             const double ratioWindow = 0.8; // ratio of the window (80% of the screen)
 
@@ -122,7 +136,7 @@ class Program
     private static void DisplayPixels(PixelColor[,] pixels)
     {
         // Create the Bitmap
-        
+
         Bitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1));
         using (Graphics g = Graphics.FromImage(bitmap))
         {
@@ -154,8 +168,8 @@ class Program
     {
         // calculate if Mandelbrot suite diverge
 
-        double rangeXPos = (double)iXpos / (double)pixelWidth * rangeX - rangeX/2.0;
-        double rangeYPos = (double)iYpos / (double)pixelHeight * rangeY - rangeY/2.0;
+        double rangeXPos = (double)iXpos / (double)pixelWidth * rangeX - rangeX / 2.0;
+        double rangeYPos = (double)iYpos / (double)pixelHeight * rangeY - rangeY / 2.0;
 
         Complex c = new(rangeXPos, rangeYPos);
         Complex z = new(0, 0);
@@ -185,6 +199,22 @@ class Program
             int color = (int)(255.0 * Math.Sqrt((double)iteration / (double)maxIteration));
             return new PixelColor(color, color, color);
         }
+    }
+
+    /// <summary>
+    /// Get the scaling factor of the current screen
+    /// </summary>
+    /// <returns>the scaling factor</returns>
+    private static float GetScalingFactor()
+    {
+        Graphics g = Graphics.FromHwnd(IntPtr.Zero);
+        IntPtr desktop = g.GetHdc();
+        int LogicalScreenHeight = GetDeviceCaps(desktop, (int)DeviceCap.VERTRES);
+        int PhysicalScreenHeight = GetDeviceCaps(desktop, (int)DeviceCap.DESKTOPVERTRES);
+
+        float ScreenScalingFactor = (float)PhysicalScreenHeight / (float)LogicalScreenHeight;
+
+        return ScreenScalingFactor; // 1.25 = 125%
     }
 }
 
