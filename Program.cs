@@ -4,8 +4,20 @@ using System.Runtime.InteropServices;
 
 class Program
 {
-    public static Form form = new();
-    public static PictureBox pictureBox = new();
+    private static readonly Form form = new();
+    private static readonly PictureBox pictureBox = new();
+    private static readonly float scaleFactor = GetScalingFactor();  // get the scaling factor
+    private static readonly int screenWidth = (int)(Screen.PrimaryScreen.Bounds.Width * scaleFactor); // get true width of the screen
+    private static readonly int screenHeight = (int)(Screen.PrimaryScreen.Bounds.Height * scaleFactor); // get true height of the screen
+
+    private static readonly int screenWidthWithDpi = Screen.PrimaryScreen.Bounds.Width; // get width of the screen scaled with dpi
+    private static readonly int screenHeightWithDpi = Screen.PrimaryScreen.Bounds.Height; // get height of the screen scaled with dpi
+
+    private static readonly double ratioWindow = 0.8; // ratio of the window (80% of the screen)
+
+    private static int pixelWidth = (int)(screenWidth * ratioWindow);  // get width of the window
+    private static int pixelHeight = (int)(screenHeight * ratioWindow);    // get height of the window
+
 
     // Necessary for getting the scaling factor
     [DllImport("gdi32.dll")]
@@ -20,23 +32,18 @@ class Program
     {
         using (MPI.Environment environment = new MPI.Environment(ref args))
         {
-            Intracommunicator comm = Communicator.world;
+            CalculateMandelbroth(); // calculate the whole mandelbroth
+        }
+    }
 
-            float scaleFactor = GetScalingFactor();  // get the scaling factor
+    private static void CalculateMandelbroth(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
+    {
+        Intracommunicator comm = Communicator.world;
 
-            // get width and height of the window and screen
-
-            int screenWidth = (int)(Screen.PrimaryScreen.Bounds.Width * scaleFactor); // get true width of the screen
-            int screenHeight = (int)(Screen.PrimaryScreen.Bounds.Height * scaleFactor); // get true height of the screen
-
-            int screenWidthWithDpi = Screen.PrimaryScreen.Bounds.Width; // get width of the screen scaled with dpi
-            int screenHeightWithDpi = Screen.PrimaryScreen.Bounds.Height; // get height of the screen scaled with dpi
-
-            const double ratioWindow = 0.8; // ratio of the window (80% of the screen)
-
-            int pixelWidth = (int)(screenWidth * ratioWindow);  // get width of the window
-            int pixelHeight = (int)(screenHeight * ratioWindow);    // get height of the window
-
+        if (P1x == 0 && P1y == 0 && P2x == 0 && P2y == 0)
+        {
+            // calculate the whole mandelbroth
+            
             double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
             double rangeY = rangeX * pixelHeight / pixelWidth;
 
@@ -52,7 +59,7 @@ class Program
                 InitializeForm(pixelWidth, pixelHeight);
 
                 // create table of pixels
-                for (int i = 0 ; i < nPerProc; i++)
+                for (int i = 0; i < nPerProc; i++)
                 {
                     int iXPos = i % pixelWidth;
                     int iYPos = i / pixelWidth;
@@ -104,6 +111,33 @@ class Program
                 Console.WriteLine("Rank {0} is ready to Send", comm.Rank);
                 comm.Send(localPixels, 0, 0);
             }
+
+        }
+        else
+        {
+            Console.WriteLine("Coucou");
+            // calculate the mandelbroth between P1 and P2
+            if (P1x > P2x)
+            {
+                pixelWidth = P1x - P2x;
+            }
+            else
+            {
+                pixelWidth = P2x - P1x;
+            }
+            if (P1y > P2y)
+            {
+                pixelHeight = P1y - P2y;
+            }
+            else
+            {
+                pixelHeight = P2y - P1y;
+            }
+
+            // TODO : PROBABLY WE HAVE TO MODIFY THE RANGE
+            double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
+            double rangeY = rangeX * pixelHeight / pixelWidth;
+
         }
     }
 
@@ -119,7 +153,7 @@ class Program
         new Thread(delegate ()
             {
                 Application.Run(form);
-            }).Start();
+        }).Start();
     }
 
     private static void DisplayPixels(PixelColor[,] pixels)
@@ -177,6 +211,11 @@ class Program
             P2y = e.Y;
             Console.WriteLine("Mouse up at ({0}, {1})", P2x, P2y);
             rectangleFinished = true;
+            
+            // Invoke CalculateMandelbroth
+            form.Invoke((MethodInvoker)delegate { CalculateMandelbroth(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbroth in Main Thrad (possibly memory problem here)
+
+
             // TODO : recalculate image
             // TODO : ZOOM IN AND OUT
 
@@ -198,6 +237,7 @@ class Program
                 e.Graphics.DrawLine(Pens.Purple, P3x, P3y, P1x, P1y);
             }
         });
+
     }
 
     private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
