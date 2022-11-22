@@ -150,7 +150,54 @@ class Program
             form.Controls.Add(pictureBox);
         }));
 
-        // TODO : ZOOM IN AND OUT
+        int P1x = 0;
+        int P1y = 0;
+        int P2x = 0;
+        int P2y = 0;
+        bool rectangleFinished = false;
+        pictureBox.MouseDown += new MouseEventHandler((object sender, MouseEventArgs e) =>
+        {
+            P1x = e.X;
+            P1y = e.Y;
+            Console.WriteLine("Mouse down at ({0}, {1})", P1x, P1y);
+        });
+        pictureBox.MouseMove += new MouseEventHandler((object sender, MouseEventArgs e) =>
+        {
+            if(!rectangleFinished)
+            {
+                P2x = e.X;
+                P2y = e.Y;
+                Console.WriteLine("Mouse move at ({0}, {1})", P2x, P2y);
+                pictureBox.Refresh();
+            }
+        });
+        pictureBox.MouseUp += new MouseEventHandler((object sender, MouseEventArgs e) =>
+        {
+            P2x = e.X;
+            P2y = e.Y;
+            Console.WriteLine("Mouse up at ({0}, {1})", P2x, P2y);
+            rectangleFinished = true;
+            // TODO : recalculate image
+            // TODO : ZOOM IN AND OUT
+
+        });
+
+        pictureBox.Paint += new PaintEventHandler((object sender, PaintEventArgs e) =>
+        {
+            if (P1x != 0 && P1y != 0 && P2x != 0 && P2y != 0)
+            {
+                // interpolate P3 and P4
+                int P3x = P1x;
+                int P3y = P2y;
+                int P4x = P2x;
+                int P4y = P1y;
+                // draw rectangle P1 P4 P2 P3
+                e.Graphics.DrawLine(Pens.Purple, P1x, P1y, P4x, P4y);
+                e.Graphics.DrawLine(Pens.Purple, P4x, P4y, P2x, P2y);
+                e.Graphics.DrawLine(Pens.Purple, P2x, P2y, P3x, P3y);
+                e.Graphics.DrawLine(Pens.Purple, P3x, P3y, P1x, P1y);
+            }
+        });
     }
 
     private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
