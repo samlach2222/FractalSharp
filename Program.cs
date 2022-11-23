@@ -9,7 +9,7 @@ class Program
     /// <summary>
     /// PictureBox where the fractal is drawn
     /// </summary>
-    private static PictureBox pictureBox = new();
+    private static readonly PictureBox pictureBox = new();
 
     /// <summary>
     /// Form where the PictureBox is 
@@ -181,6 +181,10 @@ class Program
         form.ClientSize = new Size(pixelWidth, pixelHeight);
         // change form name
         form.Text = "FractalSharp";
+        // set pictureBox to fill the form
+        pictureBox.Dock = DockStyle.Fill;
+        // add the pictureBox to the form
+        form.Controls.Add(pictureBox);
         // form create zone for display image
         new Thread(delegate ()
             {
@@ -193,11 +197,8 @@ class Program
     private static void displayLoadingScreen()
     {
         pictureBox.BackColor = Color.FromArgb(40, 44, 52); // set background color of pictureBox
-        pictureBox.ImageLocation = "loading.gif"; // set loaing.gif as pictureBox image
-        pictureBox.SizeMode = PictureBoxSizeMode.CenterImage; // center image in pictureBox
-        form.Controls.Add(pictureBox);
-        pictureBox.Dock = DockStyle.Fill;
-        pictureBox.Refresh();
+        pictureBox.ImageLocation = "loading.gif"; // set loading.gif as pictureBox image
+        pictureBox.SizeMode = PictureBoxSizeMode.Zoom; // center and fit image in pictureBox
     }
 
     /// <summary>
@@ -226,12 +227,15 @@ class Program
             }
         }
 
+        /*
         // Invoke displayThread to pass image to the form
         form.Invoke(new Action(() =>
         {
             pictureBox.Image = bitmap;
-            form.Controls.Add(pictureBox);
         }));
+        */
+        // change the image to the generated mandelbrot image
+        pictureBox.Image = bitmap;
 
         int P1x = 0;
         int P1y = 0;
@@ -266,7 +270,6 @@ class Program
                 if (e.X < 0 || e.X > pictureBox.Width || e.Y < 0 || e.Y > pictureBox.Height)
                 {
                     rectangleFinished = false;
-                    pictureBox.Refresh();
                 }
                 else
                 {
