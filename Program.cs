@@ -9,7 +9,7 @@ class Program
     /// <summary>
     /// PictureBox where the fractal is drawn
     /// </summary>
-    private static readonly PictureBox pictureBox = new();
+    private static PictureBox pictureBox = new();
 
     /// <summary>
     /// Form where the PictureBox is 
@@ -64,6 +64,8 @@ class Program
     /// <param name="P2y">Optional parameter who is the y coordinate of the second point after select an area to zoom in</param>
     private static void CalculateMandelbroth(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
     {
+        displayLoadingScreen();
+
         Intracommunicator comm = Communicator.world;
 
         if (P1x == 0 && P1y == 0 && P2x == 0 && P2y == 0)
@@ -180,11 +182,22 @@ class Program
         // change form name
         form.Text = "FractalSharp";
         // form create zone for display image
-        pictureBox.Dock = DockStyle.Fill;
         new Thread(delegate ()
             {
                 Application.Run(form);
             }).Start();
+    }
+    /// <summary>
+    /// This method display loading.gif in the form to wait the end of the calculation
+    /// </summary>
+    private static void displayLoadingScreen()
+    {
+        pictureBox.BackColor = Color.FromArgb(40, 44, 52); // set background color of pictureBox
+        pictureBox.ImageLocation = "loading.gif"; // set loaing.gif as pictureBox image
+        pictureBox.SizeMode = PictureBoxSizeMode.CenterImage; // center image in pictureBox
+        form.Controls.Add(pictureBox);
+        pictureBox.Dock = DockStyle.Fill;
+        pictureBox.Refresh();
     }
 
     /// <summary>
@@ -227,9 +240,12 @@ class Program
         bool rectangleFinished = false;
         pictureBox.MouseDown += new MouseEventHandler((object sender, MouseEventArgs e) =>
         {
-            P1x = e.X;
-            P1y = e.Y;
-            Console.WriteLine("P1 point at ({0}, {1})", P1x, P1y);
+            if (!rectangleFinished)
+            {
+                P1x = e.X;
+                P1y = e.Y;
+                Console.WriteLine("P1 point at ({0}, {1})", P1x, P1y);
+            }   
         });
 
         pictureBox.MouseMove += new MouseEventHandler((object sender, MouseEventArgs e) =>
@@ -245,22 +261,22 @@ class Program
         
         pictureBox.MouseUp += new MouseEventHandler((object sender, MouseEventArgs e) =>
         {
-            // constraint mouse move, mouse cannot move outside the image
-            if (e.X < 0 || e.X > pictureBox.Width || e.Y < 0 || e.Y > pictureBox.Height)
+            if(!rectangleFinished)
             {
-                rectangleFinished = false;
-                pictureBox.Refresh();
-            }
-            else
-            {
-                Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
-                rectangleFinished = true;
+                if (e.X < 0 || e.X > pictureBox.Width || e.Y < 0 || e.Y > pictureBox.Height)
+                {
+                    rectangleFinished = false;
+                    pictureBox.Refresh();
+                }
+                else
+                {
+                    Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
+                    rectangleFinished = true;
+
+                    form.Invoke((MethodInvoker)delegate { CalculateMandelbroth(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbroth in Main Thrad (possibly memory problem here)
+                }
             }
             
-            // Invoke CalculateMandelbroth
-            form.Invoke((MethodInvoker)delegate { CalculateMandelbroth(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbroth in Main Thrad (possibly memory problem here)
-
-
             // TODO : recalculate image
             // TODO : ZOOM IN AND OUT
 
@@ -274,7 +290,7 @@ class Program
              *      P3------P2
              */
 
-            if (P1x != 0 && P1y != 0 && P2x != 0 && P2y != 0)
+            if (P1x != 0 && P1y != 0 && P2x != 0 && P2y != 0 && !rectangleFinished)
             { // BUG : The ratio is not always respected (why ?)
                 double r = (double)pixelWidth / (double)pixelHeight;
                 int width;
@@ -397,6 +413,5 @@ class Program
  * 
  * TO DO : 
  * User have to be able to Zoom in the bitmap
- * Loading animation before the bitmap is displayed
  * Optimizations
  */
