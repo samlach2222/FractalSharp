@@ -1,32 +1,17 @@
 ﻿using FractalSharp;
 using MPI;
-using System.Runtime.InteropServices;
 
 class Program
 {
     private static readonly Form form = new();
     private static readonly PictureBox pictureBox = new();
-    private static readonly float scaleFactor = GetScalingFactor();  // get the scaling factor
-    private static readonly int screenWidth = (int)(Screen.PrimaryScreen.Bounds.Width * scaleFactor); // get true width of the screen
-    private static readonly int screenHeight = (int)(Screen.PrimaryScreen.Bounds.Height * scaleFactor); // get true height of the screen
+    private static readonly int screenWidth = Screen.PrimaryScreen.Bounds.Width; // get width of the screen
+    private static readonly int screenHeight = Screen.PrimaryScreen.Bounds.Height; // get height of the screen
 
-    private static readonly int screenWidthWithDpi = Screen.PrimaryScreen.Bounds.Width; // get width of the screen scaled with dpi
-    private static readonly int screenHeightWithDpi = Screen.PrimaryScreen.Bounds.Height; // get height of the screen scaled with dpi
+    private const double ratioImage = 0.8; // ratio of the image (80% of the screen)
 
-    private static readonly double ratioWindow = 0.8; // ratio of the window (80% of the screen)
-
-    private static int pixelWidth = (int)(screenWidth * ratioWindow);  // get width of the window
-    private static int pixelHeight = (int)(screenHeight * ratioWindow);    // get height of the window
-
-
-    // Necessary for getting the scaling factor
-    [DllImport("gdi32.dll")]
-    static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-    public enum DeviceCap
-    {
-        VERTRES = 10,
-        DESKTOPVERTRES = 117,
-    }
+    private static int pixelWidth = (int)(screenWidth * ratioImage); // get width of the mandelbrot image
+    private static int pixelHeight = (int)(screenHeight * ratioImage); // get height of the mandelbrot image
 
     static void Main(string[] args)
     {
@@ -43,7 +28,7 @@ class Program
         if (P1x == 0 && P1y == 0 && P2x == 0 && P2y == 0)
         {
             // calculate the whole mandelbroth
-            
+
             double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
             double rangeY = rangeX * pixelHeight / pixelWidth;
 
@@ -143,17 +128,17 @@ class Program
 
     private static void InitializeForm(int pixelWidth, int pixelHeight)
     {
-        int titleBarHeight = form.Height - form.ClientSize.Height; // get the size of the form title bar
-        form.Size = new(pixelWidth, pixelHeight + titleBarHeight);
+        // Use the width and height of the mandelbrot image for the window content
+        // /!\ This is different from form.Size, which includes borders and titlebar /!\
+        form.ClientSize = new Size(pixelWidth, pixelHeight);
         // change form name
         form.Text = "FractalSharp";
         // form create zone for display image
-        pictureBox.Size = new(pixelWidth, pixelHeight);
-        pictureBox.Location = new(0, 0);
+        pictureBox.Dock = DockStyle.Fill;
         new Thread(delegate ()
             {
                 Application.Run(form);
-        }).Start();
+            }).Start();
     }
 
     private static void DisplayPixels(PixelColor[,] pixels)
@@ -197,7 +182,7 @@ class Program
         });
         pictureBox.MouseMove += new MouseEventHandler((object sender, MouseEventArgs e) =>
         {
-            if(!rectangleFinished)
+            if (!rectangleFinished)
             {
                 P2x = e.X;
                 P2y = e.Y;
@@ -211,7 +196,7 @@ class Program
             P2y = e.Y;
             Console.WriteLine("Mouse up at ({0}, {1})", P2x, P2y);
             rectangleFinished = true;
-            
+
             // Invoke CalculateMandelbroth
             form.Invoke((MethodInvoker)delegate { CalculateMandelbroth(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbroth in Main Thrad (possibly memory problem here)
 
@@ -275,22 +260,6 @@ class Program
             int color = (int)(255.0 * Math.Sqrt((double)iteration / (double)maxIteration));
             return new PixelColor(color, color, color);
         }
-    }
-
-    /// <summary>
-    /// Get the scaling factor of the current screen
-    /// </summary>
-    /// <returns>the scaling factor</returns>
-    private static float GetScalingFactor()
-    {
-        Graphics g = Graphics.FromHwnd(IntPtr.Zero);
-        IntPtr desktop = g.GetHdc();
-        int LogicalScreenHeight = GetDeviceCaps(desktop, (int)DeviceCap.VERTRES);
-        int PhysicalScreenHeight = GetDeviceCaps(desktop, (int)DeviceCap.DESKTOPVERTRES);
-
-        float ScreenScalingFactor = (float)PhysicalScreenHeight / (float)LogicalScreenHeight;
-
-        return ScreenScalingFactor; // 1.25 = 125%
     }
 }
 
