@@ -1,18 +1,51 @@
 ﻿using FractalSharp;
 using MPI;
 
+/// <summary>
+/// Main class of the program
+/// </summary>
 class Program
 {
-    private static readonly Form form = new();
+    /// <summary>
+    /// PictureBox where the fractal is drawn
+    /// </summary>
     private static readonly PictureBox pictureBox = new();
+
+    /// <summary>
+    /// Form where the PictureBox is 
+    /// </summary>
+    private static readonly Form form = new();
+
+    /// <summary>
+    /// Width of the main screen in pixel
+    /// </summary>
     private static readonly int screenWidth = Screen.PrimaryScreen.Bounds.Width; // get width of the screen
+
+    /// <summary>
+    /// Height of the main screen in pixel
+    /// </summary>
     private static readonly int screenHeight = Screen.PrimaryScreen.Bounds.Height; // get height of the screen
 
+    /// <summary>
+    /// Ratio size of the window (form).
+    /// Here 80% of the screen size.
+    /// </summary>
     private const double ratioImage = 0.8; // ratio of the image (80% of the screen)
 
+    /// <summary>
+    /// Width in pixel of the image/form
+    /// </summary>
     private static int pixelWidth = (int)(screenWidth * ratioImage); // get width of the mandelbrot image
+
+    /// <summary>
+    /// Height in pixel of the image/form
+    /// </summary>
     private static int pixelHeight = (int)(screenHeight * ratioImage); // get height of the mandelbrot image
 
+    /// <summary>
+    /// Main method of the program
+    /// </summary>
+    /// <param name="args"></param>
     static void Main(string[] args)
     {
         using (MPI.Environment environment = new MPI.Environment(ref args))
@@ -21,6 +54,14 @@ class Program
         }
     }
 
+    /// <summary>
+    /// The Method calculate Mandelbroth in MPI. The rank 0 is the main process and the others work for him.
+    /// All nodes calculate a part of the mandelbroth and send it to the main process. (Each part is a part of the pixels in the image)
+    /// </summary>
+    /// <param name="P1x">Optional parameter who is the x coordinate of the first point after select an area to zoom in</param>
+    /// <param name="P1y">Optional parameter who is the y coordinate of the first point after select an area to zoom in</param>
+    /// <param name="P2x">Optional parameter who is the x coordinate of the second point after select an area to zoom in</param>
+    /// <param name="P2y">Optional parameter who is the y coordinate of the second point after select an area to zoom in</param>
     private static void CalculateMandelbroth(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
     {
         Intracommunicator comm = Communicator.world;
@@ -126,6 +167,11 @@ class Program
         }
     }
 
+    /// <summary>
+    /// This method initialize the form where the user be able to see and zoom in the mandelbroth
+    /// </summary>
+    /// <param name="pixelWidth">The Width of the Mandelbroth image in pixels. It's also the Width of the form</param>
+    /// <param name="pixelHeight">The Height of the Mandelbroth image in pixels. It's also the Height of the form</param>
     private static void InitializeForm(int pixelWidth, int pixelHeight)
     {
         // Use the width and height of the mandelbrot image for the window content
@@ -141,6 +187,11 @@ class Program
             }).Start();
     }
 
+    /// <summary>
+    /// This method create a Bitmap image with the pixels and display it in the form.
+    /// This method also permise to zoom in the mandelbroth by selecting an area.
+    /// </summary>
+    /// <param name="pixels">2D array of PixelColor (r,g,b) who contains the color of each pixel</param>
     private static void DisplayPixels(PixelColor[,] pixels)
     {
         // Create the Bitmap
@@ -285,6 +336,18 @@ class Program
 
     }
 
+    /// <summary>
+    /// The method calculate the color of a pixel and return the R, G, B values of it.
+    /// The pixel is black if the suite converge.
+    /// The pixel is in other colors (gray scale) if the suite diverge.
+    /// </summary>
+    /// <param name="iXpos">X pos of the pixel</param>
+    /// <param name="iYpos">Y pos of the pixel</param>
+    /// <param name="pixelWidth">Number of pixels in width</param>
+    /// <param name="pixelHeight">Number of pixels in Height</param>
+    /// <param name="rangeX">Range of the X axis (exemple 4 if [-2, 2])</param>
+    /// <param name="rangeY">Range of the Y axis (exemple 4 if [-2, 2])</param>
+    /// <returns>Color of the pixel</returns>
     private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
     {
         // calculate if Mandelbrot suite diverge
