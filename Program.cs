@@ -178,11 +178,12 @@ class Program
         {
             P1x = e.X;
             P1y = e.Y;
-            Console.WriteLine("Mouse down at ({0}, {1})", P1x, P1y);
+            Console.WriteLine("P1 point at ({0}, {1})", P1x, P1y);
         });
+
         pictureBox.MouseMove += new MouseEventHandler((object sender, MouseEventArgs e) =>
         {
-            if (!rectangleFinished)
+            if (P1x != 0 && P1y != 0 && !rectangleFinished)
             {
                 P2x = e.X;
                 P2y = e.Y;
@@ -190,13 +191,21 @@ class Program
                 pictureBox.Refresh();
             }
         });
+        
         pictureBox.MouseUp += new MouseEventHandler((object sender, MouseEventArgs e) =>
         {
-            P2x = e.X;
-            P2y = e.Y;
-            Console.WriteLine("Mouse up at ({0}, {1})", P2x, P2y);
-            rectangleFinished = true;
-
+            // constraint mouse move, mouse cannot move outside the image
+            if (e.X < 0 || e.X > pictureBox.Width || e.Y < 0 || e.Y > pictureBox.Height)
+            {
+                rectangleFinished = false;
+                pictureBox.Refresh();
+            }
+            else
+            {
+                Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
+                rectangleFinished = true;
+            }
+            
             // Invoke CalculateMandelbroth
             form.Invoke((MethodInvoker)delegate { CalculateMandelbroth(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbroth in Main Thrad (possibly memory problem here)
 
@@ -208,13 +217,64 @@ class Program
 
         pictureBox.Paint += new PaintEventHandler((object sender, PaintEventArgs e) =>
         {
+            /*      P1------P4
+             *       |       |
+             *       |       |
+             *      P3------P2
+             */
+
             if (P1x != 0 && P1y != 0 && P2x != 0 && P2y != 0)
-            {
+            { // BUG : The ratio is not always respected (why ?)
+                double r = (double)pixelWidth / (double)pixelHeight;
+                int width;
+                int height;
+                if (P1x > P2x)
+                {
+                    width = P1x - P2x;
+                }
+                else
+                {
+                    width = P2x - P1x;
+                }
+                if (P1y > P2y)
+                {
+                    height = P1y - P2y;
+                    if (width < height)
+                    {
+                        int widthWanted = (int)(height * r);
+                        int distance = widthWanted - width;
+                        P2x -= distance;
+                    }
+                    else
+                    {
+                        int heightWanted = (int)(width / r);
+                        int distance = heightWanted - height;
+                        P2y -= distance;
+                    }
+                }
+                else
+                {
+                    height = P2y - P1y;
+                    if (width < height)
+                    {
+                        int widthWanted = (int)(height * r);
+                        int distance = widthWanted - width;
+                        P2x += distance;
+                    }
+                    else
+                    {
+                        int heightWanted = (int)(width / r);
+                        int distance = heightWanted - height;
+                        P2y += distance;
+                    }
+                }
+              
                 // interpolate P3 and P4
                 int P3x = P1x;
                 int P3y = P2y;
                 int P4x = P2x;
                 int P4y = P1y;
+                
                 // draw rectangle P1 P4 P2 P3
                 e.Graphics.DrawLine(Pens.Purple, P1x, P1y, P4x, P4y);
                 e.Graphics.DrawLine(Pens.Purple, P4x, P4y, P2x, P2y);
