@@ -8,23 +8,27 @@
         /// <summary>
         /// Real part of the complex
         /// </summary>
-        private double real = 0; // default value 0
+        private readonly double real;
 
         /// <summary>
-        /// Imag part of the complex
+        /// Imaginary part of the complex
         /// </summary>
-        private double imag = 0; // default value 0
+        private readonly double imag;
 
         /// <summary>
-        /// Empty constructor to create a 0 + 0i number
+        /// Constructor without parameters to create a 0 + 0i number
         /// </summary>
-        public Complex() { }
+        public Complex()
+        {
+            real = 0;
+            imag = 0;
+        }
 
         /// <summary>
         /// Constructor of the complex number
         /// </summary>
         /// <param name="real">Real part of the complex</param>
-        /// <param name="imag">Imag part of the complex</param>
+        /// <param name="imag">Imaginary part of the complex</param>
         public Complex(double real, double imag)
         {
             this.real = real;
@@ -34,17 +38,18 @@
         /// <summary>
         /// Calculate the modulus of the current complex number
         /// </summary>
-        /// <returns>return modulus of the current complex number</returns>
+        /// <returns>modulus of the current complex number</returns>
         public double Modulus()
         {
             return Math.Sqrt(real * real + imag * imag);
         }
 
         /// <summary>
-        /// Return a new complex using the formula z = z^2 + c
+        /// Return a new complex using the formula z^2 + c
+        /// With z the current complex and c the parameter
         /// </summary>
         /// <param name="c">complex added for calculating the next iteration</param>
-        /// <returns>next iteration of mandelbrot</returns>
+        /// <returns>next iteration of Mandelbrot</returns>
         public Complex NextIteration(Complex c)
         {
             // Do the multiplication and addition at the same time to gain time

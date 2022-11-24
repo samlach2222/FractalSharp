@@ -44,11 +44,10 @@ if "%releaseDate%"=="%debugDate%" (
 		echo Debug will be used
 		goto BuildKnown	
 	)
-	
-	pause
 )
 
 :BuildKnown
 echo.
 set /p nbProcesses=Enter the number of processes : 
+echo --------------------------------------------------
 mpiexec -n %nbProcesses% %buildPath%

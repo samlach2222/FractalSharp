@@ -8,6 +8,10 @@ namespace FractalSharp
     [Serializable]
     internal class PixelColor : ISerializable
     {
+        private const string redSerializedName = "Red";
+        private const string greenSerializedName = "Green";
+        private const string blueSerializedName = "Blue";
+
         /// <summary>
         /// Red component of the color
         /// </summary>
@@ -26,9 +30,9 @@ namespace FractalSharp
         /// <summary>
         /// Constructor of the color
         /// </summary>
-        /// <param name="red">Red component of the color</param>
-        /// <param name="green">Green component of the color</param>
-        /// <param name="blue">Blue component of the color</param>
+        /// <param name="red">red component of the color</param>
+        /// <param name="green">green component of the color</param>
+        /// <param name="blue">blue component of the color</param>
         public PixelColor(int red, int green, int blue)
         {
             this.red = red;
@@ -54,9 +58,9 @@ namespace FractalSharp
         public PixelColor(SerializationInfo info, StreamingContext ctxt)
         {
             //Get the values from info and assign them to the appropriate properties
-            red = (int)info.GetValue("Red", typeof(int));
-            green = (int)info.GetValue("Green", typeof(int));
-            blue = (int)info.GetValue("Blue", typeof(int));
+            red = (int)info.GetValue(redSerializedName, typeof(int))!;
+            green = (int)info.GetValue(greenSerializedName, typeof(int))!;
+            blue = (int)info.GetValue(blueSerializedName, typeof(int))!;
         }
 
         /// <summary>
@@ -93,15 +97,15 @@ namespace FractalSharp
         /// <param name="context"></param>
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("Red", red);
-            info.AddValue("Green", green);
-            info.AddValue("Blue", blue);
+            info.AddValue(redSerializedName, red);
+            info.AddValue(greenSerializedName, green);
+            info.AddValue(blueSerializedName, blue);
         }
 
         /// <summary>
-        /// Method to know if the Mandelbroth suite diverge
+        /// Method to know if the Mandelbrot sequence diverge
         /// </summary>
-        /// <returns>true if diverge, false else</returns>
+        /// <returns>true if diverging (color isn't black)</returns>
         public Boolean IsDiverging()
         {
             return (red != 0 || green != 0 || blue != 0);

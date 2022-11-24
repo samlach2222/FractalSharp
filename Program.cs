@@ -19,60 +19,60 @@ class Program
     /// <summary>
     /// Width of the main screen in pixel
     /// </summary>
-    private static readonly int screenWidth = Screen.PrimaryScreen.Bounds.Width; // get width of the screen
+    private static readonly int screenWidth = Screen.PrimaryScreen.Bounds.Width;
 
     /// <summary>
     /// Height of the main screen in pixel
     /// </summary>
-    private static readonly int screenHeight = Screen.PrimaryScreen.Bounds.Height; // get height of the screen
+    private static readonly int screenHeight = Screen.PrimaryScreen.Bounds.Height;
 
     /// <summary>
-    /// Ratio size of the window (form).
+    /// Ratio size of the image.
     /// Here 80% of the screen size.
     /// </summary>
-    private const double ratioImage = 0.8; // ratio of the image (80% of the screen)
+    private const double ratioImage = 0.8;
 
     /// <summary>
-    /// Width in pixel of the image/form
+    /// Width in pixel of the image
     /// </summary>
-    private static int pixelWidth = (int)(screenWidth * ratioImage); // get width of the mandelbrot image
+    private static int pixelWidth = (int)(screenWidth * ratioImage);
 
     /// <summary>
-    /// Height in pixel of the image/form
+    /// Height in pixel of the image
     /// </summary>
-    private static int pixelHeight = (int)(screenHeight * ratioImage); // get height of the mandelbrot image
+    private static int pixelHeight = (int)(screenHeight * ratioImage);
 
     /// <summary>
     /// Main method of the program
     /// </summary>
-    /// <param name="args"></param>
+    /// <param name="args">Arguments passed in parameters (unused in our program)</param>
     static void Main(string[] args)
     {
-        using (MPI.Environment environment = new MPI.Environment(ref args))
+        using (MPI.Environment environment = new(ref args))
         {
-            CalculateMandelbroth(); // calculate the whole mandelbroth
+            CalculateMandelbrot(); // Calculate the whole Mandelbrot
         }
     }
 
     /// <summary>
-    /// The Method calculate Mandelbroth in MPI. The rank 0 is the main process and the others work for him.
-    /// All nodes calculate a part of the mandelbroth and send it to the main process. (Each part is a part of the pixels in the image)
+    /// Calculate Mandelbrot in MPI. The rank 0 is the main process and the others work for him.
+    /// All ranks calculate a part of the Mandelbrot image and send it to the main process.
     /// </summary>
-    /// <param name="P1x">Optional parameter who is the x coordinate of the first point after select an area to zoom in</param>
-    /// <param name="P1y">Optional parameter who is the y coordinate of the first point after select an area to zoom in</param>
-    /// <param name="P2x">Optional parameter who is the x coordinate of the second point after select an area to zoom in</param>
-    /// <param name="P2y">Optional parameter who is the y coordinate of the second point after select an area to zoom in</param>
-    private static void CalculateMandelbroth(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
+    /// <param name="P1x">Optional parameter which is the x coordinate of the first point after selecting an area to zoom in</param>
+    /// <param name="P1y">Optional parameter which is the y coordinate of the first point after selecting an area to zoom in</param>
+    /// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
+    /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
+    private static void CalculateMandelbrot(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
     {
-        displayLoadingScreen();
+        DisplayLoadingScreen();
 
         Intracommunicator comm = Communicator.world;
 
         if (P1x == 0 && P1y == 0 && P2x == 0 && P2y == 0)
         {
-            // calculate the whole mandelbroth
+            // Calculate the whole Mandelbrot
 
-            double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
+            double rangeX = 4; // Range of horizontal axis (example : 4 is for [-2, 2])
             double rangeY = rangeX * pixelHeight / pixelWidth;
 
             int numberOfPixels = pixelWidth * pixelHeight;
@@ -80,13 +80,13 @@ class Program
 
             if (comm.Rank == 0)
             {
-                // create table of pixels
-                PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // final table with all results
+                // Create array of pixels
+                PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
 
-                // initialize form
+                // Initialize form
                 InitializeForm(pixelWidth, pixelHeight);
 
-                // create table of pixels
+                // Calculate rank 0's part
                 for (int i = 0; i < nPerProc; i++)
                 {
                     int iXPos = i % pixelWidth;
@@ -124,9 +124,9 @@ class Program
                     nPerProc += numberOfPixels % comm.Size;
                 }
 
-                PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // 1st table cell contains rank
+                PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // + 1 cell to include the rank number
 
-                localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // RANK N
+                localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // Put rank number in the first cell
                 for (int i = 1; i < localPixels.Length; i++)
                 {
                     int iXPos = ((i - 1) + posFirstValue) % pixelWidth;
@@ -144,7 +144,7 @@ class Program
         else
         {
             Console.WriteLine("Coucou");
-            // calculate the mandelbroth between P1 and P2
+            // Calculate the Mandelbrot between P1 and P2
             if (P1x > P2x)
             {
                 pixelWidth = P1x - P2x;
@@ -163,49 +163,49 @@ class Program
             }
 
             // TODO : PROBABLY WE HAVE TO MODIFY THE RANGE
-            double rangeX = 4; // range of axis (exemple 4 is for [-2, 2])
+            double rangeX = 4; // Range of horizontal axis (example : 4 is for [-2, 2])
             double rangeY = rangeX * pixelHeight / pixelWidth;
 
         }
     }
 
     /// <summary>
-    /// This method initialize the form where the user be able to see and zoom in the mandelbroth
+    /// This method initialize the form where the user is able to see and zoom in the Mandelbrot image
     /// </summary>
-    /// <param name="pixelWidth">The Width of the Mandelbroth image in pixels. It's also the Width of the form</param>
-    /// <param name="pixelHeight">The Height of the Mandelbroth image in pixels. It's also the Height of the form</param>
+    /// <param name="pixelWidth">the width of the Mandelbrot image in pixels. It's also the width of the form's content</param>
+    /// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
     private static void InitializeForm(int pixelWidth, int pixelHeight)
     {
-        // Use the width and height of the mandelbrot image for the window content
+        // Use the width and height of the Mandelbrot image for the form content
         // /!\ This is different from form.Size, which includes borders and titlebar /!\
         form.ClientSize = new Size(pixelWidth, pixelHeight);
-        // change form name
+        // Change form name
         form.Text = "FractalSharp";
-        // set pictureBox to fill the form
+        // Set pictureBox to fill the form
         pictureBox.Dock = DockStyle.Fill;
-        // add the pictureBox to the form
+        // Add the pictureBox to the form
         form.Controls.Add(pictureBox);
-        // form create zone for display image
+        // Form create zone for display image
         new Thread(delegate ()
             {
                 Application.Run(form);
             }).Start();
     }
     /// <summary>
-    /// This method display loading.gif in the form to wait the end of the calculation
+    /// This method display loading.gif in the form while waiting for the end of the calculation
     /// </summary>
-    private static void displayLoadingScreen()
+    private static void DisplayLoadingScreen()
     {
-        pictureBox.BackColor = Color.FromArgb(40, 44, 52); // set background color of pictureBox
-        pictureBox.ImageLocation = "loading.gif"; // set loading.gif as pictureBox image
-        pictureBox.SizeMode = PictureBoxSizeMode.Zoom; // center and fit image in pictureBox
+        pictureBox.BackColor = Color.FromArgb(40, 44, 52); // Set background color of pictureBox
+        pictureBox.ImageLocation = "loading.gif"; // Set loading.gif as pictureBox image
+        pictureBox.SizeMode = PictureBoxSizeMode.Zoom; // Center and fit image in pictureBox
     }
 
     /// <summary>
-    /// This method create a Bitmap image with the pixels and display it in the form.
-    /// This method also permise to zoom in the mandelbroth by selecting an area.
+    /// This method creates a Bitmap image with the pixels and display it in the form.
+    /// This method also let the user zoom in the Mandelbrot image by selecting an area.
     /// </summary>
-    /// <param name="pixels">2D array of PixelColor (r,g,b) who contains the color of each pixel</param>
+    /// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
     private static void DisplayPixels(PixelColor[,] pixels)
     {
         // Create the Bitmap
@@ -234,7 +234,7 @@ class Program
             pictureBox.Image = bitmap;
         }));
         */
-        // change the image to the generated mandelbrot image
+        // Change the image to the generated Mandelbrot image
         pictureBox.Image = bitmap;
 
         int P1x = 0;
@@ -242,17 +242,17 @@ class Program
         int P2x = 0;
         int P2y = 0;
         bool rectangleFinished = false;
-        pictureBox.MouseDown += new MouseEventHandler((object sender, MouseEventArgs e) =>
+        pictureBox.MouseDown += new MouseEventHandler((object? sender, MouseEventArgs e) =>
         {
             if (!rectangleFinished)
             {
                 P1x = e.X;
                 P1y = e.Y;
                 Console.WriteLine("P1 point at ({0}, {1})", P1x, P1y);
-            }   
+            }
         });
 
-        pictureBox.MouseMove += new MouseEventHandler((object sender, MouseEventArgs e) =>
+        pictureBox.MouseMove += new MouseEventHandler((object? sender, MouseEventArgs e) =>
         {
             if (P1x != 0 && P1y != 0 && !rectangleFinished)
             {
@@ -262,10 +262,10 @@ class Program
                 pictureBox.Refresh();
             }
         });
-        
-        pictureBox.MouseUp += new MouseEventHandler((object sender, MouseEventArgs e) =>
+
+        pictureBox.MouseUp += new MouseEventHandler((object? sender, MouseEventArgs e) =>
         {
-            if(!rectangleFinished)
+            if (!rectangleFinished)
             {
                 if (e.X < 0 || e.X > pictureBox.Width || e.Y < 0 || e.Y > pictureBox.Height)
                 {
@@ -276,16 +276,16 @@ class Program
                     Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
                     rectangleFinished = true;
 
-                    form.Invoke((MethodInvoker)delegate { CalculateMandelbroth(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbroth in Main Thrad (possibly memory problem here)
+                    form.Invoke((MethodInvoker)delegate { CalculateMandelbrot(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
                 }
             }
-            
-            // TODO : recalculate image
+
+            // TODO : Recalculate image
             // TODO : ZOOM IN AND OUT
 
         });
 
-        pictureBox.Paint += new PaintEventHandler((object sender, PaintEventArgs e) =>
+        pictureBox.Paint += new PaintEventHandler((object? sender, PaintEventArgs e) =>
         {
             /*      P1------P4
              *       |       |
@@ -338,14 +338,14 @@ class Program
                         P2y += distance;
                     }
                 }
-              
-                // interpolate P3 and P4
+
+                // Interpolate P3 and P4
                 int P3x = P1x;
                 int P3y = P2y;
                 int P4x = P2x;
                 int P4y = P1y;
-                
-                // draw rectangle P1 P4 P2 P3
+
+                // Draw rectangle P1 P4 P2 P3
                 e.Graphics.DrawLine(Pens.Purple, P1x, P1y, P4x, P4y);
                 e.Graphics.DrawLine(Pens.Purple, P4x, P4y, P2x, P2y);
                 e.Graphics.DrawLine(Pens.Purple, P2x, P2y, P3x, P3y);
@@ -356,20 +356,20 @@ class Program
     }
 
     /// <summary>
-    /// The method calculate the color of a pixel and return the R, G, B values of it.
-    /// The pixel is black if the suite converge.
-    /// The pixel is in other colors (gray scale) if the suite diverge.
+    /// This method calculates the color of a pixel and returns it.
+    /// The pixel is black if the sequence converge.
+    /// The pixel is in other colors (gray scale) if the sequence diverge.
     /// </summary>
-    /// <param name="iXpos">X pos of the pixel</param>
-    /// <param name="iYpos">Y pos of the pixel</param>
-    /// <param name="pixelWidth">Number of pixels in width</param>
-    /// <param name="pixelHeight">Number of pixels in Height</param>
-    /// <param name="rangeX">Range of the X axis (exemple 4 if [-2, 2])</param>
-    /// <param name="rangeY">Range of the Y axis (exemple 4 if [-2, 2])</param>
-    /// <returns>Color of the pixel</returns>
+    /// <param name="iXpos">X position of the pixel</param>
+    /// <param name="iYpos">Y position of the pixel</param>
+    /// <param name="pixelWidth">number of pixels in width</param>
+    /// <param name="pixelHeight">number of pixels in height</param>
+    /// <param name="rangeX">range of the X axis (example : 4 is for [-2, 2])</param>
+    /// <param name="rangeY">range of the Y axis (example : 4 is for [-2, 2])</param>
+    /// <returns>color of the pixel</returns>
     private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
     {
-        // calculate if Mandelbrot suite diverge
+        // Calculate if Mandelbrot sequence diverge
 
         double rangeXPos = (double)iXpos / (double)pixelWidth * rangeX - rangeX / 2.0;
         double rangeYPos = (double)iYpos / (double)pixelHeight * rangeY - rangeY / 2.0;
@@ -381,8 +381,8 @@ class Program
         const int maxIteration = 1000;
         while (iteration < maxIteration && z.Modulus() <= 2) // AND Z mod 2 < 2
         {
-            // max iteration --> if not diverge
-            // z mod 2 < 2 --> if diverge
+            // Max iteration --> If not diverge
+            // z mod 2 < 2 --> If diverge
             z = z.NextIteration(c);
             iteration++;
         }
@@ -393,12 +393,12 @@ class Program
         else
         {
 
-            // color smoothing mandelbroth (a little bit)
+            // Color smoothing Mandelbrot (a little bit)
             double log_zn = Math.Log(z.Modulus());
             double nu = Math.Log(log_zn / Math.Log(2)) / Math.Log(2);
             iteration = iteration + 1 - (int)nu;
 
-            // gray gradient with color smoothing
+            // Gray gradient with color smoothing
             int color = (int)(255.0 * Math.Sqrt((double)iteration / (double)maxIteration));
             return new PixelColor(color, color, color);
         }
