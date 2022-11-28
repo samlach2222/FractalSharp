@@ -1,4 +1,4 @@
-﻿using FractalSharp;
+﻿using FractalSharpMPI;
 using MPI;
 
 /// <summary>
@@ -169,7 +169,7 @@ class Program
         // /!\ This is different from form.Size, which includes borders and titlebar /!\
         form.ClientSize = new Size(pixelWidth, pixelHeight);
         // Change form name
-        form.Text = "FractalSharp";
+        form.Text = "FractalSharpMPI";
         // Set pictureBox to fill the form
         pictureBox.Dock = DockStyle.Fill;
         // Add the pictureBox to the form
@@ -401,7 +401,7 @@ class Program
  * https://nanohub.org/resources/5641/download/2008.09.04
  * 
  * TO RUN : 
- * mpiexec -n 8 FractalSharp.exe
+ * mpiexec -n 8 FractalSharpMPI.exe
  * 
  * TO DO : 
  * User have to be able to Zoom in the bitmap

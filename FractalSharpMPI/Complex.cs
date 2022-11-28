@@ -1,4 +1,4 @@
-﻿namespace FractalSharp
+﻿namespace FractalSharpMPI
 {
     /// <summary>
     /// Class to represent a complex number
