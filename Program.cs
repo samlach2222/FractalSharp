@@ -43,6 +43,11 @@ class Program
     private static int pixelHeight = (int)(screenHeight * ratioImage);
 
     /// <summary>
+    /// Range of horizontal axis (example : 4 is for [-2, 2])
+    /// </summary>
+    private const double rangeX = 4;
+
+    /// <summary>
     /// Main method of the program
     /// </summary>
     /// <param name="args">Arguments passed in parameters (unused in our program)</param>
@@ -50,7 +55,12 @@ class Program
     {
         using (MPI.Environment environment = new(ref args))
         {
-            CalculateMandelbrot(); // Calculate the whole Mandelbrot
+            if (Communicator.world.Rank == 0)
+            {
+                // Initialize form
+                InitializeForm(pixelWidth, pixelHeight);
+            }
+            CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
         }
     }
 
@@ -64,108 +74,87 @@ class Program
     /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
     private static void CalculateMandelbrot(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
     {
-        DisplayLoadingScreen();
-
         Intracommunicator comm = Communicator.world;
 
-        if (P1x == 0 && P1y == 0 && P2x == 0 && P2y == 0)
+        Console.WriteLine("P1x = {0}, P1y = {1}, P2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
+
+        double minRangeX = (rangeX / 2) * -1;
+        double maxRangeX = rangeX / 2;
+
+        double rangeY = rangeX * pixelHeight / pixelWidth;
+        double minRangeY = (rangeY / 2) * -1;
+        double maxRangeY = rangeY / 2;
+
+        double P1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
+        double P1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
+
+        double P2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
+        double P2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
+
+        // Calculate the whole Mandelbrot
+        int numberOfPixels = pixelWidth * pixelHeight;
+        int nPerProc = numberOfPixels / comm.Size;
+
+        if (comm.Rank == 0)
         {
-            // Calculate the whole Mandelbrot
+            // Create array of pixels
+            PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
+            
+            DisplayLoadingScreen();
 
-            double rangeX = 4; // Range of horizontal axis (example : 4 is for [-2, 2])
-            double rangeY = rangeX * pixelHeight / pixelWidth;
-
-            int numberOfPixels = pixelWidth * pixelHeight;
-            int nPerProc = numberOfPixels / comm.Size;
-
-            if (comm.Rank == 0)
+            // Calculate rank 0's part
+            for (int i = 0; i < nPerProc; i++)
             {
-                // Create array of pixels
-                PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
+                int iXPos = i % pixelWidth;
+                int iYPos = i / pixelWidth;
 
-                // Initialize form
-                InitializeForm(pixelWidth, pixelHeight);
-
-                // Calculate rank 0's part
-                for (int i = 0; i < nPerProc; i++)
-                {
-                    int iXPos = i % pixelWidth;
-                    int iYPos = i / pixelWidth;
-                    PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, rangeX, rangeY);
-                    pixels[iXPos, iYPos] = px;
-                }
-
-                // Receive localPixels from other ranks
-                for (int i = 1; i < comm.Size; i++)
-                {
-                    comm.Receive<PixelColor[]>(i, 0, out PixelColor[] localPixels);
-                    int rank = localPixels[0].Red;
-                    int posFirstValue = rank * nPerProc;
-
-                    Console.WriteLine("Rank 0 received {0} values from rank {1}", localPixels.Length - 1, rank);
-
-                    for (int j = 1; j < localPixels.Length; j++)
-                    {
-                        int iXPos = ((j - 1) + posFirstValue) % pixelWidth;
-                        int iYPos = ((j - 1) + posFirstValue) / pixelWidth;
-                        pixels[iXPos, iYPos] = localPixels[j];
-                    }
-                }
-
-                // Display pixels
-                DisplayPixels(pixels);
-            }
-            else
-            {
-                int posFirstValue = comm.Rank * nPerProc;
-
-                if (comm.Rank == comm.Size - 1)
-                {
-                    nPerProc += numberOfPixels % comm.Size;
-                }
-
-                PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // + 1 cell to include the rank number
-
-                localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // Put rank number in the first cell
-                for (int i = 1; i < localPixels.Length; i++)
-                {
-                    int iXPos = ((i - 1) + posFirstValue) % pixelWidth;
-                    int iYPos = ((i - 1) + posFirstValue) / pixelWidth;
-                    PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, rangeX, rangeY);
-                    localPixels[i] = px;
-                }
-
-                // Send localPixels to rank 0
-                Console.WriteLine("Rank {0} is ready to Send", comm.Rank);
-                comm.Send(localPixels, 0, 0);
+                PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
+                pixels[iXPos, iYPos] = px;
             }
 
+            // Receive localPixels from other ranks
+            for (int i = 1; i < comm.Size; i++)
+            {
+                comm.Receive<PixelColor[]>(i, 0, out PixelColor[] localPixels);
+                int rank = localPixels[0].Red;
+                int posFirstValue = rank * nPerProc;
+
+                Console.WriteLine("Rank 0 received {0} values from rank {1}", localPixels.Length - 1, rank);
+
+                for (int j = 1; j < localPixels.Length; j++)
+                {
+                    int iXPos = ((j - 1) + posFirstValue) % pixelWidth;
+                    int iYPos = ((j - 1) + posFirstValue) / pixelWidth;
+                    pixels[iXPos, iYPos] = localPixels[j];
+                }
+            }
+
+            // Display pixels
+            DisplayPixels(pixels);
         }
         else
         {
-            Console.WriteLine("Coucou");
-            // Calculate the Mandelbrot between P1 and P2
-            if (P1x > P2x)
+            int posFirstValue = comm.Rank * nPerProc;
+
+            if (comm.Rank == comm.Size - 1)
             {
-                pixelWidth = P1x - P2x;
-            }
-            else
-            {
-                pixelWidth = P2x - P1x;
-            }
-            if (P1y > P2y)
-            {
-                pixelHeight = P1y - P2y;
-            }
-            else
-            {
-                pixelHeight = P2y - P1y;
+                nPerProc += numberOfPixels % comm.Size;
             }
 
-            // TODO : PROBABLY WE HAVE TO MODIFY THE RANGE
-            double rangeX = 4; // Range of horizontal axis (example : 4 is for [-2, 2])
-            double rangeY = rangeX * pixelHeight / pixelWidth;
+            PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // + 1 cell to include the rank number
 
+            localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // Put rank number in the first cell
+            for (int i = 1; i < localPixels.Length; i++)
+            {
+                int iXPos = ((i - 1) + posFirstValue) % pixelWidth;
+                int iYPos = ((i - 1) + posFirstValue) / pixelWidth;
+                PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
+                localPixels[i] = px;
+            }
+
+            // Send localPixels to rank 0
+            Console.WriteLine("Rank {0} is ready to Send", comm.Rank);
+            comm.Send(localPixels, 0, 0);
         }
     }
 
@@ -276,7 +265,7 @@ class Program
                     Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
                     rectangleFinished = true;
 
-                    form.Invoke((MethodInvoker)delegate { CalculateMandelbrot(P1x, P1y, P2x, P2y); }); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
+                    CalculateMandelbrot(P1x, P1y, P2x, P2y); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
                 }
             }
 
@@ -367,12 +356,12 @@ class Program
     /// <param name="rangeX">range of the X axis (example : 4 is for [-2, 2])</param>
     /// <param name="rangeY">range of the Y axis (example : 4 is for [-2, 2])</param>
     /// <returns>color of the pixel</returns>
-    private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double rangeX, double rangeY)
+    private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double minRangeX, double maxRangeX, double minRangeY, double maxRangeY)
     {
         // Calculate if Mandelbrot sequence diverge
 
-        double rangeXPos = (double)iXpos / (double)pixelWidth * rangeX - rangeX / 2.0;
-        double rangeYPos = (double)iYpos / (double)pixelHeight * rangeY - rangeY / 2.0;
+        double rangeXPos = (double)iXpos / (double)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
+        double rangeYPos = (double)iYpos / (double)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
 
         Complex c = new(rangeXPos, rangeYPos);
         Complex z = new(0, 0);
