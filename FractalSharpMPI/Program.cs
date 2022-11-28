@@ -1,5 +1,7 @@
 ﻿using FractalSharpMPI;
 using MPI;
+using System.Drawing;
+using System.Globalization;
 
 /// <summary>
 /// Main class of the program
@@ -7,89 +9,36 @@ using MPI;
 class Program
 {
     /// <summary>
-    /// PictureBox where the fractal is drawn
-    /// </summary>
-    private static readonly PictureBox pictureBox = new();
-
-    /// <summary>
-    /// Form where the PictureBox is 
-    /// </summary>
-    private static readonly Form form = new();
-
-    /// <summary>
-    /// Width of the main screen in pixel
-    /// </summary>
-    private static readonly int screenWidth = Screen.PrimaryScreen.Bounds.Width;
-
-    /// <summary>
-    /// Height of the main screen in pixel
-    /// </summary>
-    private static readonly int screenHeight = Screen.PrimaryScreen.Bounds.Height;
-
-    /// <summary>
-    /// Ratio size of the image.
-    /// Here 80% of the screen size.
-    /// </summary>
-    private const double ratioImage = 0.8;
-
-    /// <summary>
-    /// Width in pixel of the image
-    /// </summary>
-    private static int pixelWidth = (int)(screenWidth * ratioImage);
-
-    /// <summary>
-    /// Height in pixel of the image
-    /// </summary>
-    private static int pixelHeight = (int)(screenHeight * ratioImage);
-
-    /// <summary>
-    /// Range of horizontal axis (example : 4 is for [-2, 2])
-    /// </summary>
-    private const double rangeX = 4;
-
-    /// <summary>
     /// Main method of the program
     /// </summary>
-    /// <param name="args">Arguments passed in parameters (unused in our program)</param>
+    /// <param name="args">
+    /// Arguments passed in parameters :
+    /// First is number of pixels per row
+    /// Second is number of pixels per column
+    /// Third is minRangeX
+    /// Fourth is maxRangeX
+    /// Fifth is minRangeY
+    /// Sixth is maxRangeY
+    /// </param>
     static void Main(string[] args)
     {
-        using (MPI.Environment environment = new(ref args))
+        // Check if we have all the necessary arguments
+        if (args.Length != 6)
         {
-            if (Communicator.world.Rank == 0)
-            {
-                // Initialize form
-                InitializeForm(pixelWidth, pixelHeight);
-            }
-            CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
+            throw new ArgumentException("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
         }
-    }
 
-    /// <summary>
-    /// Calculate Mandelbrot in MPI. The rank 0 is the main process and the others work for him.
-    /// All ranks calculate a part of the Mandelbrot image and send it to the main process.
-    /// </summary>
-    /// <param name="P1x">Optional parameter which is the x coordinate of the first point after selecting an area to zoom in</param>
-    /// <param name="P1y">Optional parameter which is the y coordinate of the first point after selecting an area to zoom in</param>
-    /// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
-    /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
-    private static void CalculateMandelbrot(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
-    {
+        // Get values from arguments
+        int pixelWidth = int.Parse(args[0]);
+        int pixelHeight = int.Parse(args[1]);
+        double minRangeX = double.Parse(args[2], CultureInfo.InvariantCulture);
+        double maxRangeX = double.Parse(args[3], CultureInfo.InvariantCulture);
+        double minRangeY = double.Parse(args[4], CultureInfo.InvariantCulture);
+        double maxRangeY = double.Parse(args[5], CultureInfo.InvariantCulture);
+
+        // Start MPI
+        using MPI.Environment environment = new(ref args);
         Intracommunicator comm = Communicator.world;
-
-        Console.WriteLine("P1x = {0}, P1y = {1}, P2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
-
-        double minRangeX = (rangeX / 2) * -1;
-        double maxRangeX = rangeX / 2;
-
-        double rangeY = rangeX * pixelHeight / pixelWidth;
-        double minRangeY = (rangeY / 2) * -1;
-        double maxRangeY = rangeY / 2;
-
-        double P1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
-        double P1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
-
-        double P2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
-        double P2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
 
         // Calculate the whole Mandelbrot
         int numberOfPixels = pixelWidth * pixelHeight;
@@ -99,8 +48,6 @@ class Program
         {
             // Create array of pixels
             PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
-            
-            DisplayLoadingScreen();
 
             // Calculate rank 0's part
             for (int i = 0; i < nPerProc; i++)
@@ -130,7 +77,7 @@ class Program
             }
 
             // Display pixels
-            DisplayPixels(pixels);
+            CreateMandelbrotImage(pixels);
         }
         else
         {
@@ -159,43 +106,11 @@ class Program
     }
 
     /// <summary>
-    /// This method initialize the form where the user is able to see and zoom in the Mandelbrot image
-    /// </summary>
-    /// <param name="pixelWidth">the width of the Mandelbrot image in pixels. It's also the width of the form's content</param>
-    /// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
-    private static void InitializeForm(int pixelWidth, int pixelHeight)
-    {
-        // Use the width and height of the Mandelbrot image for the form content
-        // /!\ This is different from form.Size, which includes borders and titlebar /!\
-        form.ClientSize = new Size(pixelWidth, pixelHeight);
-        // Change form name
-        form.Text = "FractalSharpMPI";
-        // Set pictureBox to fill the form
-        pictureBox.Dock = DockStyle.Fill;
-        // Add the pictureBox to the form
-        form.Controls.Add(pictureBox);
-        // Form create zone for display image
-        new Thread(delegate ()
-            {
-                Application.Run(form);
-            }).Start();
-    }
-    /// <summary>
-    /// This method display loading.gif in the form while waiting for the end of the calculation
-    /// </summary>
-    private static void DisplayLoadingScreen()
-    {
-        pictureBox.BackColor = Color.FromArgb(40, 44, 52); // Set background color of pictureBox
-        pictureBox.ImageLocation = "loading.gif"; // Set loading.gif as pictureBox image
-        pictureBox.SizeMode = PictureBoxSizeMode.Zoom; // Center and fit image in pictureBox
-    }
-
-    /// <summary>
     /// This method creates a Bitmap image with the pixels and display it in the form.
     /// This method also let the user zoom in the Mandelbrot image by selecting an area.
     /// </summary>
     /// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
-    private static void DisplayPixels(PixelColor[,] pixels)
+    private static void CreateMandelbrotImage(PixelColor[,] pixels)
     {
         // Create the Bitmap
 
@@ -216,132 +131,10 @@ class Program
             }
         }
 
-        /*
-        // Invoke displayThread to pass image to the form
-        form.Invoke(new Action(() =>
-        {
-            pictureBox.Image = bitmap;
-        }));
-        */
-        // Change the image to the generated Mandelbrot image
-        pictureBox.Image = bitmap;
-
-        int P1x = 0;
-        int P1y = 0;
-        int P2x = 0;
-        int P2y = 0;
-        bool rectangleFinished = false;
-        pictureBox.MouseDown += new MouseEventHandler((object? sender, MouseEventArgs e) =>
-        {
-            if (!rectangleFinished)
-            {
-                P1x = e.X;
-                P1y = e.Y;
-                Console.WriteLine("P1 point at ({0}, {1})", P1x, P1y);
-            }
-        });
-
-        pictureBox.MouseMove += new MouseEventHandler((object? sender, MouseEventArgs e) =>
-        {
-            if (P1x != 0 && P1y != 0 && !rectangleFinished)
-            {
-                P2x = e.X;
-                P2y = e.Y;
-                Console.WriteLine("Mouse move at ({0}, {1})", P2x, P2y);
-                pictureBox.Refresh();
-            }
-        });
-
-        pictureBox.MouseUp += new MouseEventHandler((object? sender, MouseEventArgs e) =>
-        {
-            if (!rectangleFinished)
-            {
-                if (e.X < 0 || e.X > pictureBox.Width || e.Y < 0 || e.Y > pictureBox.Height)
-                {
-                    rectangleFinished = false;
-                }
-                else
-                {
-                    Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
-                    rectangleFinished = true;
-
-                    CalculateMandelbrot(P1x, P1y, P2x, P2y); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
-                }
-            }
-
-            // TODO : Recalculate image
-            // TODO : ZOOM IN AND OUT
-
-        });
-
-        pictureBox.Paint += new PaintEventHandler((object? sender, PaintEventArgs e) =>
-        {
-            /*      P1------P4
-             *       |       |
-             *       |       |
-             *      P3------P2
-             */
-
-            if (P1x != 0 && P1y != 0 && P2x != 0 && P2y != 0 && !rectangleFinished)
-            { // BUG : The ratio is not always respected (why ?)
-                double r = (double)pixelWidth / (double)pixelHeight;
-                int width;
-                int height;
-                if (P1x > P2x)
-                {
-                    width = P1x - P2x;
-                }
-                else
-                {
-                    width = P2x - P1x;
-                }
-                if (P1y > P2y)
-                {
-                    height = P1y - P2y;
-                    if (width < height)
-                    {
-                        int widthWanted = (int)(height * r);
-                        int distance = widthWanted - width;
-                        P2x -= distance;
-                    }
-                    else
-                    {
-                        int heightWanted = (int)(width / r);
-                        int distance = heightWanted - height;
-                        P2y -= distance;
-                    }
-                }
-                else
-                {
-                    height = P2y - P1y;
-                    if (width < height)
-                    {
-                        int widthWanted = (int)(height * r);
-                        int distance = widthWanted - width;
-                        P2x += distance;
-                    }
-                    else
-                    {
-                        int heightWanted = (int)(width / r);
-                        int distance = heightWanted - height;
-                        P2y += distance;
-                    }
-                }
-
-                // Interpolate P3 and P4
-                int P3x = P1x;
-                int P3y = P2y;
-                int P4x = P2x;
-                int P4y = P1y;
-
-                // Draw rectangle P1 P4 P2 P3
-                e.Graphics.DrawLine(Pens.Purple, P1x, P1y, P4x, P4y);
-                e.Graphics.DrawLine(Pens.Purple, P4x, P4y, P2x, P2y);
-                e.Graphics.DrawLine(Pens.Purple, P2x, P2y, P3x, P3y);
-                e.Graphics.DrawLine(Pens.Purple, P3x, P3y, P1x, P1y);
-            }
-        });
-
+        // Save the bitmap
+        string path = Path.GetTempPath() + "Mandelbrot.bmp";
+        bitmap.Save(Path.GetTempPath() + "Mandelbrot.bmp");
+        Console.WriteLine("Mandelbrot image saved in {0}", path);
     }
 
     /// <summary>

@@ -1,5 +1,4 @@
-﻿using FractalSharpMPI;
-using MPI;
+﻿using MPI;
 
 /// <summary>
 /// Main class of the program
@@ -99,7 +98,7 @@ class Program
         {
             // Create array of pixels
             PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
-            
+
             DisplayLoadingScreen();
 
             // Calculate rank 0's part

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FractalSharpMPI", "FractalSharpMPI\FractalSharpMPI.csproj", "{7D86FC03-CED6-4127-B1D8-C7BB323971BF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FractalSharp", "FractalSharp\FractalSharp.csproj", "{8B79857B-B024-45F5-AA57-9FAAC48A3EDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7D86FC03-CED6-4127-B1D8-C7BB323971BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D86FC03-CED6-4127-B1D8-C7BB323971BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D86FC03-CED6-4127-B1D8-C7BB323971BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B79857B-B024-45F5-AA57-9FAAC48A3EDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B79857B-B024-45F5-AA57-9FAAC48A3EDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B79857B-B024-45F5-AA57-9FAAC48A3EDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B79857B-B024-45F5-AA57-9FAAC48A3EDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
