@@ -28,15 +28,6 @@ class Program
             throw new ArgumentException("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
         }
 
-        // diplsay args
-        Console.WriteLine("Arguments :");
-        foreach (string arg in args)
-        {
-            Console.WriteLine(arg);
-        }
-
-        Console.WriteLine("Starting calculating the Mandelbrot set...");
-
         // Get values from arguments
         int pixelWidth = int.Parse(args[0]);
         int pixelHeight = int.Parse(args[1]);
@@ -55,6 +46,15 @@ class Program
 
         if (comm.Rank == 0)
         {
+            Console.WriteLine("Starting calculating the Mandelbrot set...");
+            // diplsay args
+            Console.WriteLine("Arguments :");
+            foreach (string arg in args)
+            {
+                Console.Write(arg + " | ");
+            }
+            Console.WriteLine("\n----------------------------------------------");
+
             // Create array of pixels
             PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
 
@@ -144,6 +144,7 @@ class Program
         string path = Path.GetTempPath() + "Mandelbrot.bmp";
         bitmap.Save(Path.GetTempPath() + "Mandelbrot.bmp");
         Console.WriteLine("Mandelbrot image saved in {0}", path);
+        Console.WriteLine("----------------------------------------------");
     }
 
     /// <summary>
@@ -196,17 +197,3 @@ class Program
         }
     }
 }
-
-
-/*
- * LINKS :
- * https://stackoverflow.com/questions/20710851/how-can-i-scatter-an-object-array-using-mpi-net
- * https://nanohub.org/resources/5641/download/2008.09.04
- * 
- * TO RUN : 
- * mpiexec -n 8 FractalSharpMPI.exe
- * 
- * TO DO : 
- * User have to be able to Zoom in the bitmap
- * Optimizations
- */

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 
 /// <summary>
 /// Main class of the program
@@ -45,11 +44,30 @@ class Program
 
     private static bool rectangleFinished = true;
 
+    /// <summary>
+    /// X coord of P1 in the axe
+    /// </summary>
     private static double P1XinAxe = -2.0;
+
+    /// <summary>
+    /// Y coord of P1 in the axe
+    /// </summary>
     private static double P1YinAxe = P1XinAxe * pixelHeight / pixelWidth;
+
+    /// <summary>
+    /// X coord of P2 in the axe
+    /// </summary>
     private static double P2XinAxe = 2.0;
+
+    /// <summary>
+    /// Y coord of P2 in the axe
+    /// </summary>
     private static double P2YinAxe = P2XinAxe * pixelHeight / pixelWidth;
 
+    /// <summary>
+    /// The number of process we use in MPI
+    /// 1 is the default value and it's to use the program without MPI
+    /// </summary>
     private static int nbProcessMpi = 1;
 
 
@@ -64,6 +82,10 @@ class Program
         CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
     }
 
+    /// <summary>
+    /// Ask the user the number of process to use
+    /// 1 is without MPI
+    /// </summary>
     private static void AskUserNbProcessMpi()
     {
         do
@@ -77,12 +99,10 @@ class Program
             }
         }
         while (nbProcessMpi < 1);
-        Console.WriteLine("----------------------------------------------");
     }
 
     /// <summary>
-    /// Calculate Mandelbrot in MPI. The rank 0 is the main process and the others work for him.
-    /// All ranks calculate a part of the Mandelbrot image and send it to the main process.
+    /// Call the MPI program to calculate the Mandelbrot with all the parameters
     /// </summary>
     /// <param name="P1x">Optional parameter which is the x coordinate of the first point after selecting an area to zoom in</param>
     /// <param name="P1y">Optional parameter which is the y coordinate of the first point after selecting an area to zoom in</param>
@@ -91,7 +111,10 @@ class Program
     private static void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double P2y = 0)
     {
         // Debug line
-        Console.WriteLine("P1x = {0}, P1y = {1}, P2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
+        Console.WriteLine("----------------------------------------------");
+        Console.WriteLine("Points to calculate Mandelbrot : ");
+        Console.WriteLine("P1x = {0}, P1y = {1} \nP2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
+        Console.WriteLine("----------------------------------------------");
 
         // ERROR HERE RE-CALCULATE
 
@@ -99,7 +122,9 @@ class Program
         double rangeX = Math.Abs(P2XinAxe - P1XinAxe);
         double rangeY = Math.Abs(P2YinAxe - P1YinAxe);
         //display the new range
+        Console.WriteLine("Range of the Mandelbrot plan :");
         Console.WriteLine("rangeX = {0}, rangeY = {1}", rangeX, rangeY);
+        Console.WriteLine("----------------------------------------------");
 
         double localP1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
         double localP1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
@@ -133,22 +158,22 @@ class Program
         // exec EXE FILE
         string exePath;
         string[] args;
+        ProcessStartInfo startInfo;
         if (nbProcessMpi == 1)
         {
             exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe");
             args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
-
-            Process.Start(exePath, string.Join(" ", args)).WaitForExit();
+            startInfo = new(exePath, string.Join(" ", args));
         }
         else
         {
-            exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe");
-            Console.WriteLine("exePath = {0}", exePath);
+            exePath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName + "\\FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe";
             args = new string[] {"-n" ,nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
-
-            Process.Start("mpiexec", string.Join(" ", args)).WaitForExit();
+            startInfo = new("mpiexec", string.Join(" ", args));
         }
-        
+
+        Process.Start(startInfo)!.WaitForExit();
+
         DisplayPixels();
     }
 
@@ -197,7 +222,6 @@ class Program
             {
                 P2x = e.X;
                 P2y = e.Y;
-                Console.WriteLine("Mouse move at ({0}, {1})", P2x, P2y);
                 pictureBox.Refresh();
             }
         });
@@ -213,6 +237,9 @@ class Program
                 else
                 {
                     Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
+                    Console.WriteLine("----------------------------------------------");
+                    Console.WriteLine("\n\n\n\n\n ");
+
                     rectangleFinished = true;
 
                     CalculateMandelbrot(P1x, P1y, P2x, P2y); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
@@ -336,16 +363,10 @@ class Program
     }
 }
 
-
 /*
- * LINKS :
- * https://stackoverflow.com/questions/20710851/how-can-i-scatter-an-object-array-using-mpi-net
- * https://nanohub.org/resources/5641/download/2008.09.04
- * 
  * TO RUN : 
  * mpiexec -n 8 FractalSharpMPI.exe
  * 
  * TO DO : 
- * User have to be able to Zoom in the bitmap
  * Optimizations
  */
