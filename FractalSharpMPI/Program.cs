@@ -40,10 +40,10 @@ class Program
         // Get values from arguments
         int pixelWidth = int.Parse(args[0]);
         int pixelHeight = int.Parse(args[1]);
-        double minRangeX = double.Parse(args[2], CultureInfo.InvariantCulture);
-        double maxRangeX = double.Parse(args[3], CultureInfo.InvariantCulture);
-        double minRangeY = double.Parse(args[4], CultureInfo.InvariantCulture);
-        double maxRangeY = double.Parse(args[5], CultureInfo.InvariantCulture);
+        decimal minRangeX = decimal.Parse(args[2], CultureInfo.InvariantCulture);
+        decimal maxRangeX = decimal.Parse(args[3], CultureInfo.InvariantCulture);
+        decimal minRangeY = decimal.Parse(args[4], CultureInfo.InvariantCulture);
+        decimal maxRangeY = decimal.Parse(args[5], CultureInfo.InvariantCulture);
 
         // Start MPI
         using MPI.Environment environment = new(ref args);
@@ -158,12 +158,12 @@ class Program
     /// <param name="rangeX">range of the X axis (example : 4 is for [-2, 2])</param>
     /// <param name="rangeY">range of the Y axis (example : 4 is for [-2, 2])</param>
     /// <returns>color of the pixel</returns>
-    private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double minRangeX, double maxRangeX, double minRangeY, double maxRangeY)
+    private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, decimal minRangeX, decimal maxRangeX, decimal minRangeY, decimal maxRangeY)
     {
         // Calculate if Mandelbrot sequence diverge
 
-        double rangeXPos = (double)iXpos / (double)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
-        double rangeYPos = (double)iYpos / (double)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
+        decimal rangeXPos = (decimal)iXpos / (decimal)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
+        decimal rangeYPos = (decimal)iYpos / (decimal)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
         // DEBUG : print rangeXPos and rangeYPos
         //Console.WriteLine("rangeXPos = {0}, rangeYPos = {1}", rangeXPos, rangeYPos);
 
@@ -186,12 +186,12 @@ class Program
         else
         {
             // Color smoothing Mandelbrot (a little bit)
-            double log_zn = Math.Log(z.Modulus());
-            double nu = Math.Log(log_zn / Math.Log(2)) / Math.Log(2);
+            decimal log_zn = DecimalMath.Log(z.Modulus());
+            decimal nu = DecimalMath.Log(log_zn / DecimalMath.Log(2.0m)) / DecimalMath.Log(2.0m);
             iteration = iteration + 1 - (int)nu;
 
             // Gray gradient with color smoothing
-            int color = (int)(255.0 * Math.Sqrt((double)iteration / (double)maxIteration));
+            int color = (int)(255.0m * DecimalMath.Sqrt((decimal)iteration / (decimal)maxIteration));
             return new PixelColor(color, color, color);
         }
     }

@@ -30,22 +30,22 @@ class Program
     /// Ratio size of the image.
     /// Here 80% of the screen size.
     /// </summary>
-    private const double ratioImage = 0.8;
+    private const decimal ratioImage = 0.8m;
 
     /// <summary>
     /// Width in pixel of the image
     /// </summary>
-    private static readonly int pixelWidth = (int)(screenWidth * ratioImage);
+    private static readonly int pixelWidth = 640;
 
     /// <summary>
     /// Height in pixel of the image
     /// </summary>
-    private static readonly int pixelHeight = (int)(screenHeight * ratioImage);
+    private static readonly int pixelHeight = 360;
 
-    private static double P1XinAxe = -2.0;
-    private static double P1YinAxe = P1XinAxe * pixelHeight / pixelWidth;
-    private static double P2XinAxe = 2.0;
-    private static double P2YinAxe = P2XinAxe * pixelHeight / pixelWidth;
+    private static decimal P1XinAxe = -2.0m;
+    private static decimal P1YinAxe = P1XinAxe * pixelHeight / pixelWidth;
+    private static decimal P2XinAxe = 2.0m;
+    private static decimal P2YinAxe = P2XinAxe * pixelHeight / pixelWidth;
 
 
     /// <summary>
@@ -66,7 +66,7 @@ class Program
     /// <param name="P1y">Optional parameter which is the y coordinate of the first point after selecting an area to zoom in</param>
     /// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
     /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
-    private static void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double P2y = 0)
+    private static void CalculateMandelbrot(decimal P1x = 0, decimal P1y = 0, decimal P2x = 0, decimal P2y = 0)
     {
         // Debug line
         Console.WriteLine("P1x = {0}, P1y = {1}, P2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
@@ -74,15 +74,15 @@ class Program
         // ERROR HERE RE-CALCULATE
 
         // calculate the new range of the image
-        double rangeX = Math.Abs(P2XinAxe - P1XinAxe);
-        double rangeY = Math.Abs(P2YinAxe - P1YinAxe);
+        decimal rangeX = Math.Abs(P2XinAxe - P1XinAxe);
+        decimal rangeY = Math.Abs(P2YinAxe - P1YinAxe);
         //display the new range
         Console.WriteLine("rangeX = {0}, rangeY = {1}", rangeX, rangeY);
 
-        double localP1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
-        double localP1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
-        double localP2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
-        double localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
+        decimal localP1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
+        decimal localP1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
+        decimal localP2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
+        decimal localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
 
         // stock the new range of the image for the next image
         if(localP1XinAxe < localP2XinAxe)
@@ -260,7 +260,7 @@ class Program
 
             if (P1x != 0 && P1y != 0 && P2x != 0 && P2y != 0 && !rectangleFinished)
             { // BUG : The ratio is not always respected (why ?)
-                double r = (double)pixelWidth / (double)pixelHeight;
+                decimal r = (decimal)pixelWidth / (decimal)pixelHeight;
                 int width;
                 int height;
                 if (P1x > P2x)

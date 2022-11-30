@@ -8,12 +8,12 @@
         /// <summary>
         /// Real part of the complex
         /// </summary>
-        private readonly double real;
+        private readonly decimal real;
 
         /// <summary>
         /// Imaginary part of the complex
         /// </summary>
-        private readonly double imag;
+        private readonly decimal imag;
 
         /// <summary>
         /// Constructor without parameters to create a 0 + 0i number
@@ -29,7 +29,7 @@
         /// </summary>
         /// <param name="real">Real part of the complex</param>
         /// <param name="imag">Imaginary part of the complex</param>
-        public Complex(double real, double imag)
+        public Complex(decimal real, decimal imag)
         {
             this.real = real;
             this.imag = imag;
@@ -39,9 +39,9 @@
         /// Calculate the modulus of the current complex number
         /// </summary>
         /// <returns>modulus of the current complex number</returns>
-        public double Modulus()
+        public decimal Modulus()
         {
-            return Math.Sqrt(real * real + imag * imag);
+            return DecimalMath.Sqrt(real * real + imag * imag);
         }
 
         /// <summary>
