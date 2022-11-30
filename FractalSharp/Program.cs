@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 
 /// <summary>
 /// Main class of the program
@@ -47,6 +48,8 @@ class Program
     private static double P2XinAxe = 2.0;
     private static double P2YinAxe = P2XinAxe * pixelHeight / pixelWidth;
 
+    private static int nbProcessMpi = 1;
+
 
     /// <summary>
     /// Main method of the program
@@ -54,8 +57,25 @@ class Program
     /// <param name="args">Arguments passed in parameters (unused in our program)</param>
     static void Main()
     {
+        AskUserNbProcessMpi();
         InitializeForm(pixelWidth, pixelHeight);
         CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
+    }
+
+    private static void AskUserNbProcessMpi()
+    {
+        do
+        {
+            Console.Write("Type the number of MPI processes you want to use (1 is without MPI) : ");
+            nbProcessMpi = int.Parse(Console.ReadLine()!);
+            
+            if (nbProcessMpi < 1)
+            {
+                Console.WriteLine("You must type a number greater than 0");
+            }
+        }
+        while (nbProcessMpi < 1);
+        Console.WriteLine("----------------------------------------------");
     }
 
     /// <summary>
@@ -114,10 +134,19 @@ class Program
         }
 
         // exec EXE FILE
-        // TODO : Change launch to use MPI (maybe tell to user how many processes he want)
-        string exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\x64\\Release\\net6.0-windows\\FractalSharpMPI.exe");
-        Console.WriteLine("exePath = {0}", exePath);
-        string[] args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+        string exePath;
+        string[] args;
+        if (nbProcessMpi == 1)
+        {
+            exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\x64\\Release\\net6.0-windows\\FractalSharpMPI.exe");
+            args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+        }
+        else
+        {
+            exePath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.Parent!.FullName + "\\FractalSharpMPI\\bin\\x64\\Release\\net6.0-windows\\FractalSharpMPI.exe";
+            Console.WriteLine("exePath = {0}", exePath);
+            args = new string[] {"-n" ,nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+        }
         ProcessStartInfo startInfo = new(exePath, string.Join(" ", args));
         Process.Start(startInfo);
 
