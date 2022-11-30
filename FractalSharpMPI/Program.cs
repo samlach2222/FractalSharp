@@ -28,6 +28,15 @@ class Program
             throw new ArgumentException("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
         }
 
+        // diplsay args
+        Console.WriteLine("Arguments :");
+        foreach (string arg in args)
+        {
+            Console.WriteLine(arg);
+        }
+
+        Console.WriteLine("Starting calculating the Mandelbrot set...");
+
         // Get values from arguments
         int pixelWidth = int.Parse(args[0]);
         int pixelHeight = int.Parse(args[1]);
@@ -155,6 +164,8 @@ class Program
 
         double rangeXPos = (double)iXpos / (double)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
         double rangeYPos = (double)iYpos / (double)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
+        // DEBUG : print rangeXPos and rangeYPos
+        //Console.WriteLine("rangeXPos = {0}, rangeYPos = {1}", rangeXPos, rangeYPos);
 
         Complex c = new(rangeXPos, rangeYPos);
         Complex z = new(0, 0);
@@ -174,7 +185,6 @@ class Program
         }
         else
         {
-
             // Color smoothing Mandelbrot (a little bit)
             double log_zn = Math.Log(z.Modulus());
             double nu = Math.Log(log_zn / Math.Log(2)) / Math.Log(2);

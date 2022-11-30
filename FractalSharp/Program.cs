@@ -1,4 +1,5 @@
-﻿using MPI;
+﻿using System.Diagnostics;
+using System.Globalization;
 
 /// <summary>
 /// Main class of the program
@@ -34,33 +35,27 @@ class Program
     /// <summary>
     /// Width in pixel of the image
     /// </summary>
-    private static int pixelWidth = (int)(screenWidth * ratioImage);
+    private static readonly int pixelWidth = (int)(screenWidth * ratioImage);
 
     /// <summary>
     /// Height in pixel of the image
     /// </summary>
-    private static int pixelHeight = (int)(screenHeight * ratioImage);
+    private static readonly int pixelHeight = (int)(screenHeight * ratioImage);
 
-    /// <summary>
-    /// Range of horizontal axis (example : 4 is for [-2, 2])
-    /// </summary>
-    private const double rangeX = 4;
+    private static double P1XinAxe = -2.0;
+    private static double P1YinAxe = P1XinAxe * pixelHeight / pixelWidth;
+    private static double P2XinAxe = 2.0;
+    private static double P2YinAxe = P2XinAxe * pixelHeight / pixelWidth;
+
 
     /// <summary>
     /// Main method of the program
     /// </summary>
     /// <param name="args">Arguments passed in parameters (unused in our program)</param>
-    static void Main(string[] args)
+    static void Main()
     {
-        using (MPI.Environment environment = new(ref args))
-        {
-            if (Communicator.world.Rank == 0)
-            {
-                // Initialize form
-                InitializeForm(pixelWidth, pixelHeight);
-            }
-            CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
-        }
+        InitializeForm(pixelWidth, pixelHeight);
+        CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
     }
 
     /// <summary>
@@ -71,90 +66,98 @@ class Program
     /// <param name="P1y">Optional parameter which is the y coordinate of the first point after selecting an area to zoom in</param>
     /// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
     /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
-    private static void CalculateMandelbrot(int P1x = 0, int P1y = 0, int P2x = 0, int P2y = 0)
+    private static void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double P2y = 0)
     {
-        Intracommunicator comm = Communicator.world;
-
+        // Debug line
         Console.WriteLine("P1x = {0}, P1y = {1}, P2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
 
-        double minRangeX = (rangeX / 2) * -1;
-        double maxRangeX = rangeX / 2;
+        // ERROR HERE RE-CALCULATE
 
-        double rangeY = rangeX * pixelHeight / pixelWidth;
-        double minRangeY = (rangeY / 2) * -1;
-        double maxRangeY = rangeY / 2;
+        // calculate the new range of the image
+        double rangeX = Math.Abs(P2XinAxe - P1XinAxe);
+        double rangeY = Math.Abs(P2YinAxe - P1YinAxe);
+        //display the new range
+        Console.WriteLine("rangeX = {0}, rangeY = {1}", rangeX, rangeY);
 
-        double P1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
-        double P1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
+        double localP1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
+        double localP1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
+        double localP2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
+        double localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
 
-        double P2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
-        double P2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
-
-        // Calculate the whole Mandelbrot
-        int numberOfPixels = pixelWidth * pixelHeight;
-        int nPerProc = numberOfPixels / comm.Size;
-
-        if (comm.Rank == 0)
+        // stock the new range of the image for the next image
+        if(localP1XinAxe < localP2XinAxe)
         {
-            // Create array of pixels
-            PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
-
-            DisplayLoadingScreen();
-
-            // Calculate rank 0's part
-            for (int i = 0; i < nPerProc; i++)
-            {
-                int iXPos = i % pixelWidth;
-                int iYPos = i / pixelWidth;
-
-                PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
-                pixels[iXPos, iYPos] = px;
-            }
-
-            // Receive localPixels from other ranks
-            for (int i = 1; i < comm.Size; i++)
-            {
-                comm.Receive<PixelColor[]>(i, 0, out PixelColor[] localPixels);
-                int rank = localPixels[0].Red;
-                int posFirstValue = rank * nPerProc;
-
-                Console.WriteLine("Rank 0 received {0} values from rank {1}", localPixels.Length - 1, rank);
-
-                for (int j = 1; j < localPixels.Length; j++)
-                {
-                    int iXPos = ((j - 1) + posFirstValue) % pixelWidth;
-                    int iYPos = ((j - 1) + posFirstValue) / pixelWidth;
-                    pixels[iXPos, iYPos] = localPixels[j];
-                }
-            }
-
-            // Display pixels
-            DisplayPixels(pixels);
+            P1XinAxe = localP1XinAxe;
+            P2XinAxe = localP2XinAxe;
         }
         else
         {
-            int posFirstValue = comm.Rank * nPerProc;
-
-            if (comm.Rank == comm.Size - 1)
-            {
-                nPerProc += numberOfPixels % comm.Size;
-            }
-
-            PixelColor[] localPixels = new PixelColor[nPerProc + 1]; // + 1 cell to include the rank number
-
-            localPixels[0] = new PixelColor(comm.Rank, comm.Rank, comm.Rank); // Put rank number in the first cell
-            for (int i = 1; i < localPixels.Length; i++)
-            {
-                int iXPos = ((i - 1) + posFirstValue) % pixelWidth;
-                int iYPos = ((i - 1) + posFirstValue) / pixelWidth;
-                PixelColor px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
-                localPixels[i] = px;
-            }
-
-            // Send localPixels to rank 0
-            Console.WriteLine("Rank {0} is ready to Send", comm.Rank);
-            comm.Send(localPixels, 0, 0);
+            P1XinAxe = localP2XinAxe;
+            P2XinAxe = localP1XinAxe;
         }
+        if(localP1YinAxe < localP2YinAxe)
+        {
+            P1YinAxe = localP1YinAxe;
+            P2YinAxe = localP2YinAxe;
+        }
+        else
+        {
+            P1YinAxe = localP2YinAxe;
+            P2YinAxe = localP1YinAxe;
+        }
+        
+        DisplayLoadingScreen();
+
+        if (File.Exists(Path.GetTempPath() + "Mandelbrot.bmp"))
+        {
+            File.Delete(Path.GetTempPath() + "Mandelbrot.bmp");
+        }
+
+        // exec EXE FILE
+        // TODO : Change launch to use MPI (maybe tell to user how many processes he want)
+        string exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\x64\\Release\\net6.0-windows\\FractalSharpMPI.exe");
+        Console.WriteLine("exePath = {0}", exePath);
+        string[] args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+        ProcessStartInfo startInfo = new(exePath, string.Join(" ", args));
+        Process.Start(startInfo);
+
+        // wait for the end of the process
+        while (!File.Exists(Path.GetTempPath() + "Mandelbrot.bmp"))
+        {
+            Thread.Sleep(100);
+        }
+        while (IsFileLocked(new FileInfo(Path.GetTempPath() + "Mandelbrot.bmp")))
+        {
+            Thread.Sleep(100);
+        }
+        DisplayPixels();
+    }
+
+    /// <summary>
+    /// Check if the file is occupied by another process
+    /// </summary>
+    /// <param name="file">file name we want to check</param>
+    /// <returns>true if occupied by another program, false else</returns>
+    private static bool IsFileLocked(FileInfo file)
+    {
+        try
+        {
+            using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                stream.Close();
+            }
+        }
+        catch (IOException)
+        {
+            //the file is unavailable because it is:
+            //still being written to
+            //or being processed by another thread
+            //or does not exist (has already been processed)
+            return true;
+        }
+
+        //file is not locked
+        return false;
     }
 
     /// <summary>
@@ -194,36 +197,10 @@ class Program
     /// This method also let the user zoom in the Mandelbrot image by selecting an area.
     /// </summary>
     /// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
-    private static void DisplayPixels(PixelColor[,] pixels)
+    private static void DisplayPixels()
     {
-        // Create the Bitmap
-
-        Bitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1));
-        using (Graphics g = Graphics.FromImage(bitmap))
-        {
-            g.Clear(Color.Black);
-        }
-
-        for (int i = 0; i < pixels.GetLength(0); i++)
-        {
-            for (int j = 0; j < pixels.GetLength(1); j++)
-            {
-                if (pixels[i, j].IsDiverging())
-                {
-                    bitmap.SetPixel(i, j, Color.FromArgb(pixels[i, j].Red, pixels[i, j].Green, pixels[i, j].Blue));
-                }
-            }
-        }
-
-        /*
-        // Invoke displayThread to pass image to the form
-        form.Invoke(new Action(() =>
-        {
-            pictureBox.Image = bitmap;
-        }));
-        */
         // Change the image to the generated Mandelbrot image
-        pictureBox.Image = bitmap;
+        pictureBox.ImageLocation = Path.GetTempPath() + "Mandelbrot.bmp";
 
         int P1x = 0;
         int P1y = 0;
@@ -341,55 +318,6 @@ class Program
             }
         });
 
-    }
-
-    /// <summary>
-    /// This method calculates the color of a pixel and returns it.
-    /// The pixel is black if the sequence converge.
-    /// The pixel is in other colors (gray scale) if the sequence diverge.
-    /// </summary>
-    /// <param name="iXpos">X position of the pixel</param>
-    /// <param name="iYpos">Y position of the pixel</param>
-    /// <param name="pixelWidth">number of pixels in width</param>
-    /// <param name="pixelHeight">number of pixels in height</param>
-    /// <param name="rangeX">range of the X axis (example : 4 is for [-2, 2])</param>
-    /// <param name="rangeY">range of the Y axis (example : 4 is for [-2, 2])</param>
-    /// <returns>color of the pixel</returns>
-    private static PixelColor GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double minRangeX, double maxRangeX, double minRangeY, double maxRangeY)
-    {
-        // Calculate if Mandelbrot sequence diverge
-
-        double rangeXPos = (double)iXpos / (double)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
-        double rangeYPos = (double)iYpos / (double)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
-
-        Complex c = new(rangeXPos, rangeYPos);
-        Complex z = new(0, 0);
-
-        int iteration = 0;
-        const int maxIteration = 1000;
-        while (iteration < maxIteration && z.Modulus() <= 2) // AND Z mod 2 < 2
-        {
-            // Max iteration --> If not diverge
-            // z mod 2 < 2 --> If diverge
-            z = z.NextIteration(c);
-            iteration++;
-        }
-        if (iteration == maxIteration)
-        {
-            return new PixelColor(0, 0, 0);
-        }
-        else
-        {
-
-            // Color smoothing Mandelbrot (a little bit)
-            double log_zn = Math.Log(z.Modulus());
-            double nu = Math.Log(log_zn / Math.Log(2)) / Math.Log(2);
-            iteration = iteration + 1 - (int)nu;
-
-            // Gray gradient with color smoothing
-            int color = (int)(255.0 * Math.Sqrt((double)iteration / (double)maxIteration));
-            return new PixelColor(color, color, color);
-        }
     }
 }
 
