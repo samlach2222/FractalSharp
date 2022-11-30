@@ -1,7 +1,7 @@
 @echo off
 REM Set "const" variables for debug and release paths
-set RELEASE_PATH=bin\Release\net6.0-windows\FractalSharp.exe
-set DEBUG_PATH=bin\Debug\net6.0-windows\FractalSharp.exe
+set RELEASE_PATH=bin\Release\net6.0-windows\FractalSharpMPI.exe
+set DEBUG_PATH=bin\Debug\net6.0-windows\FractalSharpMPI.exe
 
 for %%i in (%RELEASE_PATH%) do set releaseDate=%%~ti
 for %%i in (%DEBUG_PATH%) do set debugDate=%%~ti

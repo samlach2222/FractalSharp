@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace FractalSharp
+namespace FractalSharpMPI
 {
     /// <summary>
     /// Class to represent a pixel color
