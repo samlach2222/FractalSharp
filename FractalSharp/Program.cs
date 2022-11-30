@@ -43,6 +43,8 @@ class Program
     /// </summary>
     private static readonly int pixelHeight = (int)(screenHeight * ratioImage);
 
+    private static bool rectangleFinished = true;
+
     private static double P1XinAxe = -2.0;
     private static double P1YinAxe = P1XinAxe * pixelHeight / pixelWidth;
     private static double P2XinAxe = 2.0;
@@ -105,7 +107,7 @@ class Program
         double localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
 
         // stock the new range of the image for the next image
-        if(localP1XinAxe < localP2XinAxe)
+        if (localP1XinAxe < localP2XinAxe)
         {
             P1XinAxe = localP1XinAxe;
             P2XinAxe = localP2XinAxe;
@@ -115,7 +117,7 @@ class Program
             P1XinAxe = localP2XinAxe;
             P2XinAxe = localP1XinAxe;
         }
-        if(localP1YinAxe < localP2YinAxe)
+        if (localP1YinAxe < localP2YinAxe)
         {
             P1YinAxe = localP1YinAxe;
             P2YinAxe = localP2YinAxe;
@@ -125,68 +127,29 @@ class Program
             P1YinAxe = localP2YinAxe;
             P2YinAxe = localP1YinAxe;
         }
-        
-        DisplayLoadingScreen();
 
-        if (File.Exists(Path.GetTempPath() + "Mandelbrot.bmp"))
-        {
-            File.Delete(Path.GetTempPath() + "Mandelbrot.bmp");
-        }
+        DisplayLoadingScreen();
 
         // exec EXE FILE
         string exePath;
         string[] args;
         if (nbProcessMpi == 1)
         {
-            exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\x64\\Release\\net6.0-windows\\FractalSharpMPI.exe");
+            exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe");
             args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+
+            Process.Start(exePath, string.Join(" ", args)).WaitForExit();
         }
         else
         {
-            exePath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.Parent!.FullName + "\\FractalSharpMPI\\bin\\x64\\Release\\net6.0-windows\\FractalSharpMPI.exe";
+            exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe");
             Console.WriteLine("exePath = {0}", exePath);
             args = new string[] {"-n" ,nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
-        }
-        ProcessStartInfo startInfo = new(exePath, string.Join(" ", args));
-        Process.Start(startInfo);
 
-        // wait for the end of the process
-        while (!File.Exists(Path.GetTempPath() + "Mandelbrot.bmp"))
-        {
-            Thread.Sleep(100);
+            Process.Start("mpiexec", string.Join(" ", args)).WaitForExit();
         }
-        while (IsFileLocked(new FileInfo(Path.GetTempPath() + "Mandelbrot.bmp")))
-        {
-            Thread.Sleep(100);
-        }
+        
         DisplayPixels();
-    }
-
-    /// <summary>
-    /// Check if the file is occupied by another process
-    /// </summary>
-    /// <param name="file">file name we want to check</param>
-    /// <returns>true if occupied by another program, false else</returns>
-    private static bool IsFileLocked(FileInfo file)
-    {
-        try
-        {
-            using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
-            {
-                stream.Close();
-            }
-        }
-        catch (IOException)
-        {
-            //the file is unavailable because it is:
-            //still being written to
-            //or being processed by another thread
-            //or does not exist (has already been processed)
-            return true;
-        }
-
-        //file is not locked
-        return false;
     }
 
     /// <summary>
@@ -196,6 +159,8 @@ class Program
     /// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
     private static void InitializeForm(int pixelWidth, int pixelHeight)
     {
+        // INITIALISE FORM AND PICTUREBOX
+
         // Use the width and height of the Mandelbrot image for the form content
         // /!\ This is different from form.Size, which includes borders and titlebar /!\
         form.ClientSize = new Size(pixelWidth, pixelHeight);
@@ -203,39 +168,19 @@ class Program
         form.Text = "FractalSharpMPI";
         // Set pictureBox to fill the form
         pictureBox.Dock = DockStyle.Fill;
+        // Set background color of pictureBox
+        pictureBox.BackColor = Color.FromArgb(40, 44, 52);
         // Add the pictureBox to the form
         form.Controls.Add(pictureBox);
-        // Form create zone for display image
-        new Thread(delegate ()
-            {
-                Application.Run(form);
-            }).Start();
-    }
-    /// <summary>
-    /// This method display loading.gif in the form while waiting for the end of the calculation
-    /// </summary>
-    private static void DisplayLoadingScreen()
-    {
-        pictureBox.BackColor = Color.FromArgb(40, 44, 52); // Set background color of pictureBox
-        pictureBox.ImageLocation = "loading.gif"; // Set loading.gif as pictureBox image
-        pictureBox.SizeMode = PictureBoxSizeMode.Zoom; // Center and fit image in pictureBox
-    }
+        // exit program if form is closed
+        form.FormClosed += (sender, e) => Environment.Exit(0);
 
-    /// <summary>
-    /// This method creates a Bitmap image with the pixels and display it in the form.
-    /// This method also let the user zoom in the Mandelbrot image by selecting an area.
-    /// </summary>
-    /// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
-    private static void DisplayPixels()
-    {
-        // Change the image to the generated Mandelbrot image
-        pictureBox.ImageLocation = Path.GetTempPath() + "Mandelbrot.bmp";
-
+        // ADD MOUSE HANDLERS TO PICTUREBOX
+        
         int P1x = 0;
         int P1y = 0;
         int P2x = 0;
         int P2y = 0;
-        bool rectangleFinished = false;
         pictureBox.MouseDown += new MouseEventHandler((object? sender, MouseEventArgs e) =>
         {
             if (!rectangleFinished)
@@ -271,6 +216,11 @@ class Program
                     rectangleFinished = true;
 
                     CalculateMandelbrot(P1x, P1y, P2x, P2y); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
+
+                    P1x = 0;
+                    P1y = 0;
+                    P2x = 0;
+                    P2y = 0;
                 }
             }
 
@@ -347,6 +297,42 @@ class Program
             }
         });
 
+        // DISPLAY THE FORM
+
+        new Thread(delegate ()
+        {
+            Application.Run(form);
+        }).Start();
+    }
+    /// <summary>
+    /// This method display loading.gif in the form while waiting for the end of the calculation
+    /// </summary>
+    private static void DisplayLoadingScreen()
+    {
+        form.Invoke(new Action(() =>
+        {
+            pictureBox.Load("loading.gif"); // Set loading.gif as pictureBox image
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom; // Center and fit image in pictureBox
+            pictureBox.Refresh(); // Refresh pictureBox
+        }));
+    }
+
+    /// <summary>
+    /// This method creates a Bitmap image with the pixels and display it in the form.
+    /// This method also let the user zoom in the Mandelbrot image by selecting an area.
+    /// </summary>
+    /// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
+    private static void DisplayPixels()
+    {
+        // Change the image to the generated Mandelbrot image
+        form.Invoke(new Action(() =>
+        {
+            pictureBox.Load(Path.GetTempPath() + "Mandelbrot.bmp");
+            pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox.Refresh(); // Refresh pictureBox
+        }));
+
+        rectangleFinished = false;
     }
 }
 

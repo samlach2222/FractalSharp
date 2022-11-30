@@ -7,11 +7,14 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
-	<Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
 	<PackageReference Include="MPI.NET" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FractalSharpMPI\FractalSharpMPI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
