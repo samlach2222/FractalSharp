@@ -156,24 +156,21 @@ class Program
         DisplayLoadingScreen();
 
         // exec EXE FILE
-        string exePath;
+        string exePath = "FractalSharpMPI.exe";
         string[] args;
         ProcessStartInfo startInfo;
         if (nbProcessMpi == 1)
         {
-            exePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName, "FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe");
             args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
             startInfo = new(exePath, string.Join(" ", args));
         }
         else
         {
-            exePath = Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.Parent!.Parent!.FullName + "\\FractalSharpMPI\\bin\\Release\\net6.0-windows\\FractalSharpMPI.exe";
             args = new string[] {"-n" ,nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
             startInfo = new("mpiexec", string.Join(" ", args));
         }
 
         Process.Start(startInfo)!.WaitForExit();
-
         DisplayPixels();
     }
 
