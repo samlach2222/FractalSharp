@@ -113,16 +113,14 @@ class Program
         // Debug line
         Console.WriteLine("----------------------------------------------");
         Console.WriteLine("Points to calculate Mandelbrot : ");
-        Console.WriteLine("P1x = {0}, P1y = {1} \nP2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
+        Console.WriteLine("P1x = {0}, P1y = {1}\nP2x = {2}, P2y = {3}", P1x, P1y, P2x, P2y);
         Console.WriteLine("----------------------------------------------");
 
-        // ERROR HERE RE-CALCULATE
-
-        // calculate the new range of the image
+        // Calculate the new range of the image
         double rangeX = Math.Abs(P2XinAxe - P1XinAxe);
         double rangeY = Math.Abs(P2YinAxe - P1YinAxe);
-        //display the new range
-        Console.WriteLine("Range of the Mandelbrot plan :");
+        // Display the new range
+        Console.WriteLine("Range of the Mandelbrot set :");
         Console.WriteLine("rangeX = {0}, rangeY = {1}", rangeX, rangeY);
         Console.WriteLine("----------------------------------------------");
 
@@ -131,7 +129,7 @@ class Program
         double localP2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
         double localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
 
-        // stock the new range of the image for the next image
+        // Stock the new range of the image for the next image
         if (localP1XinAxe < localP2XinAxe)
         {
             P1XinAxe = localP1XinAxe;
@@ -155,7 +153,7 @@ class Program
 
         DisplayLoadingScreen();
 
-        // exec EXE FILE
+        // Execute the MPI program to generate the Mandelbrot image
         string exePath = "FractalSharpMPI.exe";
         string[] args;
         ProcessStartInfo startInfo;
@@ -194,7 +192,7 @@ class Program
         pictureBox.BackColor = Color.FromArgb(40, 44, 52);
         // Add the pictureBox to the form
         form.Controls.Add(pictureBox);
-        // exit program if form is closed
+        // Exit program if form is closed
         form.FormClosed += (sender, e) => Environment.Exit(0);
 
         // ADD MOUSE HANDLERS TO PICTUREBOX
@@ -209,7 +207,7 @@ class Program
             {
                 P1x = e.X;
                 P1y = e.Y;
-                Console.WriteLine("P1 point at ({0}, {1})", P1x, P1y);
+                Console.WriteLine("P1 points at ({0}, {1})", P1x, P1y);
             }
         });
 
@@ -233,9 +231,9 @@ class Program
                 }
                 else
                 {
-                    Console.WriteLine("P2 point up at ({0}, {1})", P2x, P2y);
+                    Console.WriteLine("P2 points at ({0}, {1})", P2x, P2y);
                     Console.WriteLine("----------------------------------------------");
-                    Console.WriteLine("\n\n\n\n\n ");
+                    Console.WriteLine("\n\n\n\n\n");
 
                     rectangleFinished = true;
 

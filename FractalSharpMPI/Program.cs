@@ -50,14 +50,22 @@ class Program
 
         if (comm.Rank == 0)
         {
-            Console.WriteLine("Starting calculating the Mandelbrot set...");
-            // diplsay args
+            // Display args
             Console.WriteLine("Arguments :");
             foreach (string arg in args)
             {
-                Console.Write(arg + " | ");
+                if (arg != args.Last())
+                {
+                    Console.Write(arg + " | ");
+                }
+                else
+                {
+                    Console.WriteLine(arg);
+                }
             }
-            Console.WriteLine("\n----------------------------------------------");
+
+            Console.WriteLine("Calculating the Mandelbrot set");
+            Console.WriteLine("----------------------------------------------");
 
             // Create array of pixels
             PixelColor[,] pixels = new PixelColor[pixelWidth, pixelHeight]; // Final array with all pixels
@@ -79,7 +87,7 @@ class Program
                 int rank = localPixels[0].Red;
                 int posFirstValue = rank * nPerProc;
 
-                Console.WriteLine("Rank 0 received {0} values from rank {1}", localPixels.Length - 1, rank);
+                Console.WriteLine("Rank 0 received {0} pixels from rank {1}", localPixels.Length - 1, rank);
 
                 for (int j = 1; j < localPixels.Length; j++)
                 {
@@ -113,7 +121,7 @@ class Program
             }
 
             // Send localPixels to rank 0
-            Console.WriteLine("Rank {0} is ready to Send", comm.Rank);
+            Console.WriteLine("Rank {0} is ready to send", comm.Rank);
             comm.Send(localPixels, 0, 0);
         }
     }
