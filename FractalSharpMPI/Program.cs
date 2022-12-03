@@ -1,6 +1,6 @@
 ﻿using FractalSharpMPI;
 using MPI;
-using System.Drawing;
+using SkiaSharp;
 using System.Globalization;
 
 /// <summary>
@@ -25,7 +25,11 @@ class Program
         // Check if we have all the necessary arguments
         if (args.Length != 6)
         {
+#if DEBUG
+            args = new string[] { "1280", "720", "-2.0", "2.0", "-1.125", "1.125" };
+#else
             throw new ArgumentException("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
+#endif            
         }
 
         // Get values from arguments
@@ -122,27 +126,29 @@ class Program
     private static void CreateMandelbrotImage(PixelColor[,] pixels)
     {
         // Create the Bitmap
+        SKBitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1), true);
 
-        Bitmap bitmap = new(pixels.GetLength(0), pixels.GetLength(1));
-        using (Graphics g = Graphics.FromImage(bitmap))
-        {
-            g.Clear(Color.Black);
-        }
+        // Fill the Bitmap with black, so we only need to set the pixels where Mandelbrot is diverging
+        bitmap.Erase(SKColors.Black);
 
+        // Set diverging pixels
         for (int i = 0; i < pixels.GetLength(0); i++)
         {
             for (int j = 0; j < pixels.GetLength(1); j++)
             {
                 if (pixels[i, j].IsDiverging())
                 {
-                    bitmap.SetPixel(i, j, Color.FromArgb(pixels[i, j].Red, pixels[i, j].Green, pixels[i, j].Blue));
+                    bitmap.SetPixel(i, j, new SKColor((byte)pixels[i, j].Red, (byte)pixels[i, j].Green, (byte)pixels[i, j].Blue));
                 }
             }
         }
 
-        // Save the bitmap
-        string path = Path.GetTempPath() + "Mandelbrot.bmp";
-        bitmap.Save(Path.GetTempPath() + "Mandelbrot.bmp");
+        // Save the bitmap as PNG (SkiaSharp can't save as bitmap)
+        string path = Path.GetTempPath() + "Mandelbrot.png";
+        using (SKWStream fileStream = new SKFileWStream(path))
+        {
+            bitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+        }
         Console.WriteLine("Mandelbrot image saved in {0}", path);
         Console.WriteLine("----------------------------------------------");
     }

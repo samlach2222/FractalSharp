@@ -92,7 +92,7 @@ class Program
         {
             Console.Write("Type the number of MPI processes you want to use (1 is without MPI) : ");
             nbProcessMpi = int.Parse(Console.ReadLine()!);
-            
+
             if (nbProcessMpi < 1)
             {
                 Console.WriteLine("You must type a number greater than 0");
@@ -166,7 +166,7 @@ class Program
         }
         else
         {
-            args = new string[] {"-n" ,nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+            args = new string[] { "-n", nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
             startInfo = new("mpiexec", string.Join(" ", args));
         }
 
@@ -198,7 +198,7 @@ class Program
         form.FormClosed += (sender, e) => Environment.Exit(0);
 
         // ADD MOUSE HANDLERS TO PICTUREBOX
-        
+
         int P1x = 0;
         int P1y = 0;
         int P2x = 0;
@@ -351,7 +351,7 @@ class Program
         // Change the image to the generated Mandelbrot image
         form.Invoke(new Action(() =>
         {
-            pictureBox.Load(Path.GetTempPath() + "Mandelbrot.bmp");
+            pictureBox.Load(Path.GetTempPath() + "Mandelbrot.png");
             pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox.Refresh(); // Refresh pictureBox
         }));
