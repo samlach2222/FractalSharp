@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 			color* localPixels;
 			int localPixelsSize = 0;
 
-			if (rank == numtasks - 1) { // last task (nPerProc + numberOfPixels % nPerProc) pixels
+			if (i == numtasks - 1) { // last task (nPerProc + numberOfPixels % nPerProc) pixels
 				localPixelsSize = nPerProc + numberOfPixels % nPerProc + 1;
 				localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
 				MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 			int rank = localPixels[0].r;
 			int posFirstValue = rank * nPerProc;
 			
-			std::cout << "Rank 0 received " << localPixelsSize << " pixels from rank" << rank << std::endl;
+			std::cout << "Rank 0 received " << localPixelsSize << " pixels from rank " << rank << std::endl;
 
 			for (int j = 1; j < localPixelsSize; j++)
 			{
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
 		}
 
 		// Send localPixels to rank 0
-		std::cout << "Rank " << rank << " is ready to send " << nPerProc + 1 << " pixels." << std::endl;
+		std::cout << "Rank " << rank << " is ready to send " << nPerProc + 1 << " pixels" << std::endl;
 		MPI_Send(localPixels, nPerProc + 1, colorType, 0, 10, MPI_COMM_WORLD); // (nPerProc + 1)*3 --> 3 is for r, g and b Int
 	}
 
