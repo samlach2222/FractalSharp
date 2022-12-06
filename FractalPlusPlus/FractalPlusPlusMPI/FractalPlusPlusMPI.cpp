@@ -9,11 +9,11 @@
 #include "Complex.h"
 
 
-struct color {
+typedef struct color {
     int r;
     int g;
     int b;
-};
+} color ;
 
 /// <summary>
 /// width of the image
@@ -29,6 +29,7 @@ int main(int, char* []);
 bool IsDiverging(color);
 void CreateMandelbrotImage(color**);
 color GetPixelColor(int, int, int, int, double, double, double, double);
+void defineStruct(MPI_Datatype* tstype);
 
 /// <summary>
 /// Main method of the program
@@ -53,6 +54,10 @@ int main(int argc, char* argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
     // get my rank
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    // declare MPI type for the color struct
+    MPI_Datatype colorType;
+    // initialize MPI type for the color struct
+    defineStruct(&colorType);
 	// message parsing
     MPI_Status status;
 
@@ -90,11 +95,11 @@ int main(int argc, char* argv[])
             }
             else
             {
-                std::cout << argv[i] << "\n";
+                std::cout << argv[i] << std::endl;
             }
         }
-        std::cout << "Calculating the Mandelbrot set\n";
-        std::cout << "----------------------------------------------\n";
+        std::cout << "Calculating the Mandelbrot set" << std::endl;
+        std::cout << "----------------------------------------------" << std::endl;
 		
         // Create array of pixels
         color** pixels = new color * [pixelWidth];
@@ -114,31 +119,36 @@ int main(int argc, char* argv[])
             color px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
             pixels[iXPos][iYPos] = px;
         }
-		
+
         // Receive localPixels from other ranks
         for (int i = 1; i < numtasks; i++)
         {
             color* localPixels;
+            int localPixelsSize = 0;
+
 			if (rank == numtasks - 1) { // last task (nPerProc + numberOfPixels % nPerProc) pixels
-                localPixels = new color[nPerProc + numberOfPixels % nPerProc + 1];
+                localPixelsSize = nPerProc + numberOfPixels % nPerProc + 1;
+                localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
+                MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
             }
             else {
-                localPixels = new color[nPerProc + 1];
+                localPixelsSize = nPerProc + 1;
+                localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
+                MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
             }
-            MPI_Recv(&localPixels, (nPerProc + 1)*3, MPI_INT, i, 10, MPI_COMM_WORLD, &status);
             int rank = localPixels[0].r;
             int posFirstValue = rank * nPerProc;
             
-            std::cout << "Rank 0 received " << localPixels - 1 << " pixels from rank" << rank << "\n";
+            std::cout << "Rank 0 received " << localPixelsSize << " pixels from rank" << rank << std::endl;
 
-
-			int localPixelsSize = *(&localPixels + 1) - localPixels;
             for (int j = 1; j < localPixelsSize; j++)
             {
                 int iXPos = ((j - 1) + posFirstValue) % pixelWidth;
                 int iYPos = ((j - 1) + posFirstValue) / pixelWidth;
-                pixels[iXPos][iYPos] = localPixels[j];
+                pixels[iXPos][iYPos] = localPixels[j]; // Error here, impossible to receive the struct
             }
+
+            free(localPixels);
         }
 
         // Display pixels
@@ -148,7 +158,7 @@ int main(int argc, char* argv[])
         int posFirstValue = rank * nPerProc;
         if (rank == numtasks - 1)
         {
-            nPerProc += numberOfPixels % numtasks;
+            nPerProc += numberOfPixels % nPerProc;
         }
 
         color* localPixels = new color[nPerProc + 1]; // + 1 cell to include the rank number
@@ -163,10 +173,27 @@ int main(int argc, char* argv[])
         }
 
         // Send localPixels to rank 0
-        std::cout << "Rank " << rank << " is ready to send\n";
-        MPI_Send(&localPixels, (nPerProc + 1) * 3, MPI_INT, 0, 10, MPI_COMM_WORLD); // (nPerProc + 1)*3 --> 3 is for r, g and b Int
+        std::cout << "Rank " << rank << " is ready to send " << nPerProc + 1 << " pixels." << std::endl;
+        MPI_Send(localPixels, nPerProc + 1, colorType, 0, 10, MPI_COMM_WORLD); // (nPerProc + 1)*3 --> 3 is for r, g and b Int
     }
+
+    // Done with MPI
+    MPI_Finalize();
     return 0;
+}
+
+/// <summary>
+/// define MPI type with struct color
+/// </summary>
+/// <param name="tstype">MPI type</param>
+void defineStruct(MPI_Datatype* colorType) {
+    const int count = 3;
+    int blocklens[count] = { 1, 1, 1 };
+    MPI_Datatype types[count] = { MPI_INT, MPI_INT, MPI_INT };
+    MPI_Aint disps[count] = { offsetof(color,r), offsetof(color,g), offsetof(color,b) };
+
+    MPI_Type_create_struct(count, blocklens, disps, types, colorType);
+    MPI_Type_commit(colorType);
 }
 
 /// <summary>
@@ -227,8 +254,8 @@ void CreateMandelbrotImage(color** pixels)
     // save file
     std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
 	SDL_SaveBMP(surface, path.c_str());
-	std::cout << "Mandelbrot image saved in " << path << "\n";
-    std::cout << "----------------------------------------------\n";
+	std::cout << "Mandelbrot image saved in " << path << std::endl;
+    std::cout << "----------------------------------------------" << std::endl;
 }
 
 
