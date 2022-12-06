@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "Complex.h"
+#include <filesystem>
 
 struct color {
     int r;
@@ -12,10 +13,33 @@ struct color {
     int b;
 };
 
+/// <summary>
+/// width of the image
+/// </summary>
+int pixelWidth;
+
+/// <summary>
+/// height of the image
+/// </summary>
+int pixelHeight;
+
 bool IsDiverging(color);
-void CreateMandelbrotImage(color);
+void CreateMandelbrotImage(color**);
 color GetPixelColor(int, int, int, int, double, double, double, double);
 
+/// <summary>
+/// Main method of the program
+/// </summary>
+/// <param name="argc">number of arguments</param>
+/// <param name="argv">
+/// Arguments passed in parameters :
+/// First is number of pixels per row
+/// Second is number of pixels per column
+/// Third is minRangeX
+/// Fourth is maxRangeX
+/// Fifth is minRangeY
+/// Sixth is maxRangeY</param>
+/// <returns>exit code</returns>
 int main(int argc, char* argv[])
 {
     // MPI vars
@@ -33,8 +57,8 @@ int main(int argc, char* argv[])
         throw new std::invalid_argument("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
     }
 	
-    const int pixelWidth = std::stoi(argv[0]);
-    const int pixelHeight = std::stoi(argv[1]);
+    pixelWidth = std::stoi(argv[0]);
+    pixelHeight = std::stoi(argv[1]);
     double minRangeX = std::atof(argv[2]);
     double maxRangeX = std::atof(argv[3]);
     double minRangeY = std::atof(argv[4]);
@@ -87,7 +111,7 @@ int main(int argc, char* argv[])
                 else {
                     localPixels = new color[nPerProc + 1];
                 }
-                MPI_Recv(&localPixels, nPerProc, MPI_INT, 1, 10, MPI_COMM_WORLD, &status);
+                MPI_Recv(&localPixels, nPerProc, MPI_INT, i, 10, MPI_COMM_WORLD, &status);
                 int rank = localPixels[0].r;
                 int posFirstValue = rank * nPerProc;
                 
@@ -131,15 +155,69 @@ int main(int argc, char* argv[])
     }
 }
 
+/// <summary>
+/// Method to know if the Mandelbrot sequence diverge
+/// </summary>
+/// <returns>true if diverging (color isn't black)</returns>
 bool IsDiverging(color pixel)
 {
 	return (pixel.r != 0 || pixel.g != 0 || pixel.b != 0);
 }
 
-void CreateMandelbrotImage(color pixels[])
+/// <summary>
+/// This method creates a Bitmap image with the pixels and display it in the form.
+/// This method also let the user zoom in the Mandelbrot image by selecting an area.
+/// </summary>
+/// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
+void CreateMandelbrotImage(color** pixels)
 {
+	// Create the surface
+    SDL_Surface* surface;
+    Uint32 rmask, gmask, bmask, amask;
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x00000000;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0x00000000;
+#endif
+    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, pixelWidth, pixelHeight, 32, rmask, gmask, bmask, amask);
+    if (surface == NULL) {
+        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+        exit(1);
+    }
 	
+    // Fill the Bitmap with black, so we only need to set the pixels where Mandelbrot is diverging
+	SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
+
+    // Set diverging pixels
+    for (int i = 0; i < pixelWidth; i++)
+    {
+        for (int j = 0; j < pixelHeight; j++)
+        {
+            if (IsDiverging(pixels[i][j]))
+            {
+				unsigned char* surfacePixels = (unsigned char*)surface->pixels;
+                surfacePixels[4 * (j * pixelWidth + i) + 0] = pixels[i][j].b; // blue
+                surfacePixels[4 * (j * pixelWidth + i) + 1] = pixels[i][j].g; // green
+                surfacePixels[4 * (j * pixelWidth + i) + 2] = pixels[i][j].r; // red
+            }
+        }
+    }
+    
+    // save file
+    std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.png";
+	SDL_SaveBMP(surface, path.c_str());
+	std::cout << "Mandelbrot image saved in" << path << "\n";
+    std::cout << "----------------------------------------------\n";
 }
+
+
 
 /// <summary>
 /// This method calculates the color of a pixel and returns it.
@@ -190,14 +268,3 @@ color GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, doubl
         return color{colorValue, colorValue, colorValue};
     }
 }
-
-// Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage
-// Déboguer le programme : F5 ou menu Déboguer > Démarrer le débogage
-
-// Astuces pour bien démarrer : 
-//   1. Utilisez la fenêtre Explorateur de solutions pour ajouter des fichiers et les gérer.
-//   2. Utilisez la fenêtre Team Explorer pour vous connecter au contrôle de code source.
-//   3. Utilisez la fenêtre Sortie pour voir la sortie de la génération et d'autres messages.
-//   4. Utilisez la fenêtre Liste d'erreurs pour voir les erreurs.
-//   5. Accédez à Projet > Ajouter un nouvel élément pour créer des fichiers de code, ou à Projet > Ajouter un élément existant pour ajouter des fichiers de code existants au projet.
-//   6. Pour rouvrir ce projet plus tard, accédez à Fichier > Ouvrir > Projet et sélectionnez le fichier .sln.
