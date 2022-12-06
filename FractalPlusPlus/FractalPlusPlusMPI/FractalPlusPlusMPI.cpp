@@ -252,7 +252,11 @@ void CreateMandelbrotImage(color** pixels)
     }
     
     // save file
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
     std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
+#else
+    std::string path = "/tmp/Mandelbrot.bmp";
+#endif
 	SDL_SaveBMP(surface, path.c_str());
 	std::cout << "Mandelbrot image saved in " << path << std::endl;
     std::cout << "----------------------------------------------" << std::endl;
