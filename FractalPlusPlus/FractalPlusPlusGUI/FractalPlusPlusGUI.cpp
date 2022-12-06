@@ -77,7 +77,9 @@ int nbProcessMpi = 1;
 
 int main()
 {
-	
+	AskUserNbProcessMpi();
+	InitializeForm(pixelWidth, pixelHeight);
+	CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
 	return 0;
 }
 
@@ -98,7 +100,16 @@ int getScreenHeight() {
 /// 1 is without MPI
 /// </summary>
 void AskUserNbProcessMpi() {
+	do
+	{
+		std::cout << "Type the number of MPI processes you want to use (1 is without MPI) : " ;
+		std::cin >> nbProcessMpi;
 
+		if (nbProcessMpi < 1)
+		{
+			std::cout << "\nYou must type a number greater than 0" << std::endl;
+		}
+	} while (nbProcessMpi < 1);
 }
 
 /// <summary>
