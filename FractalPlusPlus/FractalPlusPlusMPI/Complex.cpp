@@ -16,8 +16,8 @@ Complex::Complex() {
 /// <param name="imag">Imaginary part of the complex</param>
 Complex::Complex(double real, double imag)
 {
-    this->real = real;
-    this->imag = imag;
+	this->real = real;
+	this->imag = imag;
 }
 
 /// <summary>
