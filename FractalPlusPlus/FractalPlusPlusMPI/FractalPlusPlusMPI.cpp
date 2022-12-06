@@ -2,10 +2,39 @@
 //
 
 #include <iostream>
+#include <mpi.h>
+#include <SDL/SDL.h>
+
+#include "Complex.h"
+
+struct color {
+	int r;
+	int g;
+	int b;
+};
+
+bool IsDiverging(color);
+void CreateMandelbrotImage(color);
+color GetPixelColor(int, int, int, int, double, double, double, double);
 
 int main()
 {
     std::cout << "Hello World!\n";
+}
+
+bool IsDiverging(color pixel)
+{
+	return (pixel.r != 0 || pixel.g != 0 || pixel.b != 0);
+}
+
+void CreateMandelbrotImage(color pixels[])
+{
+	
+}
+
+color GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double minRangeX, double maxRangeX, double minRangeY, double maxRangeY)
+{
+	return color();
 }
 
 // Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage
