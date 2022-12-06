@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FractalPlusPlusMPI", "FractalPlusPlusMPI\FractalPlusPlusMPI.vcxproj", "{73E9E02E-6AD8-4E79-A935-4D6CA29C82A5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FractalPlusPlusGUI", "FractalPlusPlusGUI\FractalPlusPlusGUI.vcxproj", "{8981F39C-0841-4B2E-8EF1-012357C73C98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{73E9E02E-6AD8-4E79-A935-4D6CA29C82A5}.Release|x64.Build.0 = Release|x64
 		{73E9E02E-6AD8-4E79-A935-4D6CA29C82A5}.Release|x86.ActiveCfg = Release|Win32
 		{73E9E02E-6AD8-4E79-A935-4D6CA29C82A5}.Release|x86.Build.0 = Release|Win32
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Debug|x64.ActiveCfg = Debug|x64
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Debug|x64.Build.0 = Debug|x64
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Debug|x86.ActiveCfg = Debug|Win32
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Debug|x86.Build.0 = Debug|Win32
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Release|x64.ActiveCfg = Release|x64
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Release|x64.Build.0 = Release|x64
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Release|x86.ActiveCfg = Release|Win32
+		{8981F39C-0841-4B2E-8EF1-012357C73C98}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
