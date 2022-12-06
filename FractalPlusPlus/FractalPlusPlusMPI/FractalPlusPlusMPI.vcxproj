@@ -129,11 +129,9 @@
   <ItemGroup>
     <ClCompile Include="Complex.cpp" />
     <ClCompile Include="FractalPlusPlusMPI.cpp" />
-    <ClCompile Include="PixelColor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Complex.h" />
-    <ClInclude Include="PixelColor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
