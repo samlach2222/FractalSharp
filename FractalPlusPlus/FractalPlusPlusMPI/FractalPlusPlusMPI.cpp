@@ -1,26 +1,134 @@
-// FractalPlusPlusMPI.cpp : Ce fichier contient la fonction 'main'. L'exécution du programme commence et se termine à cet endroit.
-//
-
-#include <iostream>
-#include <mpi.h>
+#include "mpi.h"
 #include <SDL/SDL.h>
+#include <iostream>
+#include <string>
 #include <cmath>
 
 #include "Complex.h"
 
 struct color {
-	int r;
-	int g;
-	int b;
+    int r;
+    int g;
+    int b;
 };
 
 bool IsDiverging(color);
 void CreateMandelbrotImage(color);
 color GetPixelColor(int, int, int, int, double, double, double, double);
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+    // MPI vars
+    int numtasks, rank;
+    // initialize MPI
+    MPI_Init(&argc, &argv);
+    // get number of tasks
+    MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
+    // get my rank
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	// message parsing
+    MPI_Status status;
+	
+    if (argc != 6) {
+        throw new std::invalid_argument("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
+    }
+	
+    const int pixelWidth = std::stoi(argv[0]);
+    const int pixelHeight = std::stoi(argv[1]);
+    double minRangeX = std::atof(argv[2]);
+    double maxRangeX = std::atof(argv[3]);
+    double minRangeY = std::atof(argv[4]);
+    double maxRangeY = std::atof(argv[5]);
+       
+    // Calculate the whole Mandelbrot
+    int numberOfPixels = pixelWidth * pixelHeight;
+    int nPerProc = numberOfPixels / numtasks;
+
+    if (rank == 0) {
+        // Display args
+		std::cout << "Arguments ";
+		for (int i = 0; i < argc; i++) {
+            if (i != argc - 1) {
+                std::cout << argv[i] << " | ";
+            }
+            else
+            {
+                std::cout << argv[i] << "\n";
+            }
+            std::cout << "Calculating the Mandelbrot set\n";
+            std::cout << "----------------------------------------------\n";
+			
+            // Create array of pixels
+            color** pixels = new color * [pixelWidth];
+            for (int i = 0; i < pixelWidth; i++) {
+
+                // Declare a memory block
+                // of size n
+                pixels[i] = new color[pixelHeight];
+            }
+			
+            // Calculate rank 0's part
+            for (int i = 0; i < nPerProc; i++)
+            {
+                int iXPos = i % pixelWidth;
+                int iYPos = i / pixelWidth;
+
+                color px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
+                pixels[iXPos][iYPos] = px;
+            }
+			
+            // Receive localPixels from other ranks
+            for (int i = 1; i < numtasks; i++)
+            {
+                color* localPixels;
+				if (rank == numtasks - 1) { // last task (nPerProc + numberOfPixels % nPerProc) pixels
+                    localPixels = new color[nPerProc + numberOfPixels % nPerProc + 1];
+                }
+                else {
+                    localPixels = new color[nPerProc + 1];
+                }
+                MPI_Recv(&localPixels, nPerProc, MPI_INT, 1, 10, MPI_COMM_WORLD, &status);
+                int rank = localPixels[0].r;
+                int posFirstValue = rank * nPerProc;
+                
+                std::cout << "Rank 0 received " << localPixels - 1 << " pixels from rank" << rank << "\n";
+
+
+				int localPixelsSize = *(&localPixels + 1) - localPixels;
+                for (int j = 1; j < localPixelsSize; j++)
+                {
+                    int iXPos = ((j - 1) + posFirstValue) % pixelWidth;
+                    int iYPos = ((j - 1) + posFirstValue) / pixelWidth;
+                    pixels[iXPos][iYPos] = localPixels[j];
+                }
+            }
+
+            // Display pixels
+            CreateMandelbrotImage(pixels);
+		}
+    }
+    else {
+        int posFirstValue = rank * nPerProc;
+        if (rank == numtasks - 1)
+        {
+            nPerProc += numberOfPixels % numtasks;
+        }
+
+        color* localPixels = new color[nPerProc + 1]; // + 1 cell to include the rank number
+		
+        localPixels[0] = { rank, rank, rank }; // Put rank number in the first cell
+        for (int i = 1; i < nPerProc + 1; i++)
+        {
+            int iXPos = ((i - 1) + posFirstValue) % pixelWidth;
+            int iYPos = ((i - 1) + posFirstValue) / pixelWidth;
+            color px = GetPixelColor(iXPos, iYPos, pixelWidth, pixelHeight, minRangeX, maxRangeX, minRangeY, maxRangeY);
+            localPixels[i] = px;
+        }
+
+        // Send localPixels to rank 0
+        std::cout << "Rank " << rank << " is ready to send\n";
+        MPI_Send(&localPixels, nPerProc + 1, MPI_INT, 0, 10, MPI_COMM_WORLD);
+    }
 }
 
 bool IsDiverging(color pixel)
