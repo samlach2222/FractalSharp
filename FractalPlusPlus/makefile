@@ -16,14 +16,14 @@ EXEC=FractalPlusPlusMPI
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-        $(CXX)  -o $(BIN)$@ $^ $(LDFLAGS)
+	$(CXX)  -o $(BIN)$@ $^ $(LDFLAGS)
 
 %.o: %.cpp
-        $(CXX)  -o $@ -c $< $(CFLAGS)
+	$(CXX)  -o $@ -c $< $(CFLAGS)
 
 
 clean:
-        rm -rf *.o
+	rm -rf *.o
 
 mrproper: clean
-        rm -rf $(BIN)$(EXEC)
+	rm -rf $(BIN)$(EXEC)
