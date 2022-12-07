@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SDL/SDL.h>
+#include "SDL/SDL_thread.h"
 #undef main // Needed to overwrite the overwritten main method by SDL
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -7,6 +8,8 @@
 #include <tchar.h>
 #endif
 #include <string>
+#include <filesystem>
+#include <thread>
 
 int getScreenWidth();
 int getScreenHeight();
@@ -17,19 +20,18 @@ void DisplayLoadingScreen();
 void DisplayPixels();
 
 /// <summary>
-/// PictureBox where the fractal is drawn
+/// Form where the mandelbrot image is displayed
 /// </summary>
-//PictureBox pictureBox = new();
+SDL_Surface* form;
 
 /// <summary>
-/// Form where the PictureBox is 
+/// Thread where the form is displayed (to avoid blocking the main thread)
 /// </summary>
-//Form form = new();
+SDL_Thread* displayThread = NULL;
 
 /// <summary>
 /// Width of the main screen in pixel
 /// </summary>
-
 int screenWidth = getScreenWidth();
 
 /// <summary>
@@ -218,7 +220,78 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 #else
 	// TODO : Implement process creation for Linux
 #endif
-	//DisplayPixels();
+	DisplayPixels();
+}
+
+int drawRectangleThreadFunc(void* data) {
+	// user mouse events
+	int P1x = 0;
+	int P1y = 0;
+	int P2x = 0;
+	int P2y = 0;
+	bool mouseDown = false;
+	bool mouseUp = false;
+	bool mouseMove = false;
+	int mouseX = 0;
+	int mouseY = 0;
+	SDL_Event event;
+	
+	while (true) {
+		// wait for mouse click event
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+			case SDL_MOUSEBUTTONDOWN:
+				if (!rectangleFinished) {
+					P1x = event.button.x;
+					P1y = event.button.y;
+					std::cout << "P1 points at (" + std::to_string(P1x) + ", " + std::to_string(P1y) + ")" << std::endl;
+				}
+				//mouseDown = true;
+				//mouseX = event.button.x;
+				//mouseY = event.button.y;
+				break;
+			case SDL_MOUSEBUTTONUP:
+				if (!rectangleFinished) {
+					if (event.button.x < 0 || event.button.x > pixelWidth || event.button.y < 0 || event.button.y > pixelHeight) {
+						rectangleFinished = false;
+					}
+					else
+					{
+						std::cout << "P2 points at (" + std::to_string(P2x) + ", " + std::to_string(P2y) + ")" << std::endl;
+						std::cout << "----------------------------------------------" << std::endl;
+						std::cout << "\n\n\n\n" << std::endl;
+
+						rectangleFinished = true;
+
+						CalculateMandelbrot(P1x, P1y, P2x, P2y); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
+
+						P1x = 0;
+						P1y = 0;
+						P2x = 0;
+						P2y = 0;
+					}
+				}
+				//mouseUp = true;
+				//mouseX = event.button.x;
+				//mouseY = event.button.y;
+				break;
+			case SDL_MOUSEMOTION:
+				if (P1x != 0 && P1y != 0 && !rectangleFinished)
+				{
+					P2x = event.button.x;
+					P2y = event.button.y;
+				}
+				//mouseMove = true;
+				//mouseX = event.button.x;
+				//mouseY = event.button.y;
+				break;
+			case SDL_QUIT:
+				break;
+			}
+		}
+		// DRAWING STARTS HERE
+	}
+	return 0;
 }
 
 /// <summary>
@@ -227,7 +300,24 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 /// <param name="pixelWidth">the width of the Mandelbrot image in pixels. It's also the width of the form's content</param>
 /// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
 void InitializeForm(int pixelWidth, int pixelHeight) {
-
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		throw std::exception((const char)"Unable to init SDL: " + SDL_GetError());
+	}
+	// make sure SDL cleans up before exit
+	atexit(SDL_Quit);
+	// create a new window
+	form = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_OPENGL | SDL_DOUBLEBUF);
+	if (!form) {
+		std::string errorTxt = "Unable to set" + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError();
+		throw std::exception(errorTxt.c_str());
+	}
+	// Change form name
+	SDL_WM_SetCaption("FractalPlusPlus", "FractalPlusPlus");
+	// set background color of the SDL_Surface
+	SDL_FillRect(form, NULL, SDL_MapRGB(form->format, 40, 44, 52));
+	
+	// HERE THREAD
+	displayThread = SDL_CreateThread(drawRectangleThreadFunc, NULL);
 }
 
 /// <summary>
@@ -237,11 +327,20 @@ void DisplayLoadingScreen() {
 
 }
 
-/// <summary>
-/// This method creates a Bitmap image with the pixels and display it in the form.
-/// This method also let the user zoom in the Mandelbrot image by selecting an area.
-/// </summary>
-/// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
 void DisplayPixels() {
+	// Change the image to the generated Mandelbrot image
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
+#else
+	std::string path = "/tmp/Mandelbrot.bmp";
+#endif
+	SDL_Surface* image = SDL_LoadBMP(path.c_str());
+	if (!image) {
+		throw std::exception((const char)"Error loading image: " + SDL_GetError());
+	}
+	rectangleFinished = false;
 
+	// Display the image in the form
+	SDL_BlitSurface(image, NULL, form, NULL);
+	SDL_Flip(form);
 }
