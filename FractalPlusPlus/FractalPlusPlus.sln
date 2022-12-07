@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FractalPlusPlusMPI", "FractalPlusPlusMPI\FractalPlusPlusMPI.vcxproj", "{73E9E02E-6AD8-4E79-A935-4D6CA29C82A5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FractalPlusPlusGUI", "FractalPlusPlusGUI\FractalPlusPlusGUI.vcxproj", "{8981F39C-0841-4B2E-8EF1-012357C73C98}"
+	ProjectSection(ProjectDependencies) = postProject
+		{73E9E02E-6AD8-4E79-A935-4D6CA29C82A5} = {73E9E02E-6AD8-4E79-A935-4D6CA29C82A5}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,6 +1,12 @@
 #include <iostream>
 #include <SDL/SDL.h>
-#undef main
+#undef main // Needed to overwrite the overwritten main method by SDL
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#include <windows.h>
+#include <tchar.h>
+#endif
+#include <string>
 
 int getScreenWidth();
 int getScreenHeight();
@@ -85,7 +91,7 @@ int main()
 
 int getScreenWidth() {
 	SDL_Init(SDL_INIT_EVERYTHING);
-	const SDL_VideoInfo* info = SDL_GetVideoInfo();  
+	const SDL_VideoInfo* info = SDL_GetVideoInfo();
 	return info->current_w;
 }
 
@@ -102,7 +108,7 @@ int getScreenHeight() {
 void AskUserNbProcessMpi() {
 	do
 	{
-		std::cout << "Type the number of MPI processes you want to use (1 is without MPI) : " ;
+		std::cout << "Type the number of MPI processes you want to use (1 is without MPI) : ";
 		std::cin >> nbProcessMpi;
 
 		if (nbProcessMpi < 1)
@@ -120,7 +126,99 @@ void AskUserNbProcessMpi() {
 /// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
 /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
 void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double P2y = 0) {
+	// Debug line
+	std::cout << "----------------------------------------------" << std::endl;
+	std::cout << "Points to calculate Mandelbrot :" << std::endl;
+	std::cout << "P1x = " << P1x << ", P1y = " << P1y << "\nP2x = " << P2x << ", P2y = " << P2y << std::endl;
+	std::cout << "----------------------------------------------" << std::endl;
 
+	// Calculate the new range of the image
+	double rangeX = abs(P2XinAxe - P1XinAxe);
+	double rangeY = abs(P2YinAxe - P1YinAxe);
+	// Display the new range
+	std::cout << "Range of the Mandelbrot set :" << std::endl;
+	std::cout << "rangeX = " << rangeX << ", rangeY = " << rangeY << std::endl;
+	std::cout << "----------------------------------------------" << std::endl;
+
+	double localP1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
+	double localP1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
+	double localP2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
+	double localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
+
+	// Stock the new range of the image for the next image
+	if (localP1XinAxe < localP2XinAxe)
+	{
+		P1XinAxe = localP1XinAxe;
+		P2XinAxe = localP2XinAxe;
+	}
+	else
+	{
+		P1XinAxe = localP2XinAxe;
+		P2XinAxe = localP1XinAxe;
+	}
+	if (localP1YinAxe < localP2YinAxe)
+	{
+		P1YinAxe = localP1YinAxe;
+		P2YinAxe = localP2YinAxe;
+	}
+	else
+	{
+		P1YinAxe = localP2YinAxe;
+		P2YinAxe = localP1YinAxe;
+	}
+
+	DisplayLoadingScreen();
+
+	// Execute the MPI program to generate the Mandelbrot image
+	constexpr char FPPExeName[] = "FractalPlusPlusMPI.exe";
+	constexpr char MPIExeName[] = "mpiexec.exe";
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+
+	// Initialize variables used to create the process
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// Create TCHAR variable for the command used
+	// TCHAR is a type that can represent a character with either 1 or 2 bytes, which is known at compilation
+	constexpr int commandBufferSize = sizeof(TCHAR) * 200;
+	TCHAR command[commandBufferSize];
+
+	if (nbProcessMpi == 1)
+	{
+		// Store the command in the command variable
+		_stprintf_s(command, commandBufferSize, TEXT("\"%hs\" %d %d %lf %lf %lf %lf"), FPPExeName, pixelWidth, pixelHeight, P1XinAxe, P2XinAxe, P1YinAxe, P2YinAxe);
+	}
+	else
+	{
+		// Store the command in the command variable
+		_stprintf_s(command, commandBufferSize, TEXT("\"%hs\" -n %d %hs %d %d %lf %lf %lf %lf"), MPIExeName, nbProcessMpi, FPPExeName, pixelWidth, pixelHeight, P1XinAxe, P2XinAxe, P1YinAxe, P2YinAxe);
+	}
+
+	// DEBUG : print the command
+	//std::wcout << "command : " << command << std::endl;
+
+	// Get the directory of both FractalPlusPlus executables
+	TCHAR FPPDirectory[MAX_PATH];
+	GetModuleFileName(NULL, FPPDirectory, MAX_PATH);  // GetModuleFileName includes the executable (it's the path of the current process)...
+	FPPDirectory[_tcslen(FPPDirectory) - strlen(FPPExeName)] = '\0';  // ...So we set the null terminator earlier to only get the directory
+
+	CreateProcess(NULL, command, NULL, NULL, FALSE, 0, NULL, FPPDirectory, &si, &pi);
+
+	// Wait until the program has finished
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// Close handles and free memory
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+#else
+	// TODO : Implement process creation for Linux
+#endif
+	//DisplayPixels();
 }
 
 /// <summary>
@@ -136,7 +234,7 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 /// This method display loading.gif in the form while waiting for the end of the calculation
 /// </summary>
 void DisplayLoadingScreen() {
-	
+
 }
 
 /// <summary>
@@ -145,5 +243,5 @@ void DisplayLoadingScreen() {
 /// </summary>
 /// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
 void DisplayPixels() {
-	
+
 }

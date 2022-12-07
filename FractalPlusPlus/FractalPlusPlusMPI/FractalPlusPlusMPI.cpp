@@ -13,7 +13,7 @@ typedef struct color {
 	int r;
 	int g;
 	int b;
-} color ;
+} color;
 
 /// <summary>
 /// width of the image
@@ -29,7 +29,7 @@ int main(int, char* []);
 bool IsDiverging(color);
 void CreateMandelbrotImage(color**);
 color GetPixelColor(int, int, int, int, double, double, double, double);
-void defineStruct(MPI_Datatype* tstype);
+void defineColorStruct(MPI_Datatype* tstype);
 
 /// <summary>
 /// Main method of the program
@@ -57,19 +57,10 @@ int main(int argc, char* argv[])
 	// declare MPI type for the color struct
 	MPI_Datatype colorType;
 	// initialize MPI type for the color struct
-	defineStruct(&colorType);
+	defineColorStruct(&colorType);
 	// message parsing
 	MPI_Status status;
 
-#ifdef _DEBUG
-	// test vals
-	pixelWidth = std::stoi("1280");
-	pixelHeight = std::stoi("720");
-	double minRangeX = std::atof("-2.0");
-	double maxRangeX = std::atof("2.0");
-	double minRangeY = std::atof("-1.125");
-	double maxRangeY = std::atof("1.125");
-#else
 	if (argc != 7) { // not 6 because in CPP argv[0] is the path of the exe file
 		throw new std::invalid_argument("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
 	}
@@ -80,8 +71,7 @@ int main(int argc, char* argv[])
 	double maxRangeX = std::atof(argv[4]);
 	double minRangeY = std::atof(argv[5]);
 	double maxRangeY = std::atof(argv[6]);
-#endif
-	   
+
 	// Calculate the whole Mandelbrot
 	int numberOfPixels = pixelWidth * pixelHeight;
 	int nPerProc = numberOfPixels / numtasks;
@@ -100,7 +90,7 @@ int main(int argc, char* argv[])
 		}
 		std::cout << "Calculating the Mandelbrot set" << std::endl;
 		std::cout << "----------------------------------------------" << std::endl;
-		
+
 		// Create array of pixels
 		color** pixels = new color * [pixelWidth];
 		for (int i = 0; i < pixelWidth; i++) {
@@ -109,7 +99,7 @@ int main(int argc, char* argv[])
 			// of size n
 			pixels[i] = new color[pixelHeight];
 		}
-		
+
 		// Calculate rank 0's part
 		for (int i = 0; i < nPerProc; i++)
 		{
@@ -138,7 +128,7 @@ int main(int argc, char* argv[])
 			}
 			int rank = localPixels[0].r;
 			int posFirstValue = rank * nPerProc;
-			
+
 			std::cout << "Rank 0 received " << localPixelsSize << " pixels from rank " << rank << std::endl;
 
 			for (int j = 1; j < localPixelsSize; j++)
@@ -162,7 +152,7 @@ int main(int argc, char* argv[])
 		}
 
 		color* localPixels = new color[nPerProc + 1]; // + 1 cell to include the rank number
-		
+
 		localPixels[0] = { rank, rank, rank }; // Put rank number in the first cell
 		for (int i = 1; i < nPerProc + 1; i++)
 		{
@@ -186,7 +176,7 @@ int main(int argc, char* argv[])
 /// define MPI type with struct color
 /// </summary>
 /// <param name="tstype">MPI type</param>
-void defineStruct(MPI_Datatype* colorType) {
+void defineColorStruct(MPI_Datatype* colorType) {
 	const int count = 3;
 	int blocklens[count] = { 1, 1, 1 };
 	MPI_Datatype types[count] = { MPI_INT, MPI_INT, MPI_INT };
@@ -232,7 +222,7 @@ void CreateMandelbrotImage(color** pixels)
 		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
 		exit(1);
 	}
-	
+
 	// Fill the Bitmap with black, so we only need to set the pixels where Mandelbrot is diverging
 	SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
 
@@ -250,7 +240,7 @@ void CreateMandelbrotImage(color** pixels)
 			}
 		}
 	}
-	
+
 	// save file
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
@@ -283,7 +273,7 @@ color GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, doubl
 	double rangeXPos = (double)iXpos / (double)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
 	double rangeYPos = (double)iYpos / (double)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
 	// DEBUG : print rangeXPos and rangeYPos
-	//Console.WriteLine("rangeXPos = {0}, rangeYPos = {1}", rangeXPos, rangeYPos);
+	//std::cout << "rangeXPos = " << rangeXPos << ", rangeYPos = " << rangeYPos << "\n";
 
 	Complex c = Complex(rangeXPos, rangeYPos);
 	Complex z = Complex(0, 0);
@@ -310,6 +300,6 @@ color GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, doubl
 
 		// Gray gradient with color smoothing
 		int colorValue = (int)(255.0 * sqrt((double)iteration / (double)maxIteration));
-		return color{colorValue, colorValue, colorValue};
+		return color{ colorValue, colorValue, colorValue };
 	}
 }
