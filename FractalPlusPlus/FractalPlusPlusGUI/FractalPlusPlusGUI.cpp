@@ -6,6 +6,9 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #include <tchar.h>
+#else
+#include <sys/types.h>
+#include <spawn.h>
 #endif
 #include <string>
 #include <filesystem>
@@ -172,8 +175,8 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 	DisplayLoadingScreen();
 
 	// Execute the MPI program to generate the Mandelbrot image
-	constexpr char FPPExeName[] = "FractalPlusPlusMPI.exe";
-	constexpr char MPIExeName[] = "mpiexec.exe";
+	constexpr char FPPExeName[] = "FractalPlusPlusMPI";
+	constexpr char MPIExeName[] = "mpiexec";
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 
@@ -214,11 +217,33 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 	// Wait until the program has finished
 	WaitForSingleObject(pi.hProcess, INFINITE);
 
-	// Close handles and free memory
+	// Close handles
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 #else
-	// TODO : Implement process creation for Linux
+
+	pid_t pid;
+	const char** argv;
+	char** environnement;
+
+	if (nbProcessMpi == 1)
+	{
+		constexpr int argvSize = 1 + 6 + 1;  // + 1 for the executable, and + 1 for the NULL pointer at the end
+		argv = new const char* [argvSize] { FPPExeName, std::to_string(pixelWidth).c_str(), std::to_string(pixelHeight).c_str(), std::to_string(P1XinAxe).c_str(), std::to_string(P2XinAxe).c_str(), std::to_string(P1YinAxe).c_str(), std::to_string(P2YinAxe).c_str(), NULL };
+	}
+	else
+	{
+		constexpr int argvSize = 3 + 1 + 6 + 1;  // + 3 for MPI executable with "-n" and number of processes, + 1 for the executable, and + 1 for the NULL pointer at the end
+		argv = new const char* [argvSize] { MPIExeName, "-n", std::to_string(nbProcessMpi).c_str(), FPPExeName, std::to_string(pixelWidth).c_str(), std::to_string(pixelHeight).c_str(), std::to_string(P1XinAxe).c_str(), std::to_string(P2XinAxe).c_str(), std::to_string(P1YinAxe).c_str(), std::to_string(P2YinAxe).c_str(), NULL };
+	}
+
+	int status = posix_spawn(&pid, argv[0], NULL, NULL, argv, environnement);
+
+	std::cout << "posix_spawn status = " << status << std::endl;  //DEBUG
+
+	waitpid(pid, &status, 0);
+
+	std::cout << "waitpid status = " << status << std::endl;  //DEBUG
 #endif
 	DisplayPixels();
 }
@@ -327,6 +352,10 @@ void DisplayLoadingScreen() {
 
 }
 
+/// <summary>
+/// This method creates a Bitmap image with the pixels and display it in the form.
+/// This method also let the user zoom in the Mandelbrot image by selecting an area.
+/// </summary>
 void DisplayPixels() {
 	// Change the image to the generated Mandelbrot image
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -343,4 +372,3 @@ void DisplayPixels() {
 	// Display the image in the form
 	SDL_BlitSurface(image, NULL, form, NULL);
 	SDL_Flip(form);
-}
