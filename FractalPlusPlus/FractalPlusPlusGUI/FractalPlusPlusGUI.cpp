@@ -222,30 +222,24 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 #else
-
-	pid_t pid;
-	const* char* argv;
-	char** environnement;
+	const std::string FPPEXENameLinux = "./" + std::string(FPPExeName);  // In linux we need to prepend "./" when it's in the current directory
+	std::string commandeString;
 
 	if (nbProcessMpi == 1)
 	{
-		constexpr int argvSize = 1 + 6 + 1;  // + 1 for the executable, and + 1 for the NULL pointer at the end
-		argv = new char* [argvSize] { FPPExeName, std::to_string(pixelWidth).c_str(), std::to_string(pixelHeight).c_str(), std::to_string(P1XinAxe).c_str(), std::to_string(P2XinAxe).c_str(), std::to_string(P1YinAxe).c_str(), std::to_string(P2YinAxe).c_str(), NULL };
+		// Store the command in the commandeString variable
+		commandeString = FPPEXENameLinux + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
 	}
 	else
 	{
-		constexpr int argvSize = 3 + 1 + 6 + 1;  // + 3 for MPI executable with "-n" and number of processes, + 1 for the executable, and + 1 for the NULL pointer at the end
-		argv = new char* [argvSize] { MPIExeName, "-n", std::to_string(nbProcessMpi).c_str(), FPPExeName, std::to_string(pixelWidth).c_str(), std::to_string(pixelHeight).c_str(), std::to_string(P1XinAxe).c_str(), std::to_string(P2XinAxe).c_str(), std::to_string(P1YinAxe).c_str(), std::to_string(P2YinAxe).c_str(), NULL };
+		// Store the command in the commandeString variable
+		commandeString = std::string(MPIExeName) + " -n " + std::to_string(nbProcessMpi) + ' ' + FPPEXENameLinux + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
 	}
 
-	// TODO : test if casting to char* const* really works
-	int status = posix_spawn(&pid, argv[0], NULL, NULL, (char* const*) argv, environnement);
-
-	std::cout << "posix_spawn status = " << status << std::endl;  //DEBUG
-
-	waitpid(pid, &status, 0);
-
-	std::cout << "waitpid status = " << status << std::endl;  //DEBUG
+	std::cout << FPPEXENameLinux << std::endl;
+	std::cout << commandeString << std::endl;
+	std::cout.flush();  // Flush the terminal buffer before calling the system method to avoid mixing the output of the two programs
+	system(commandeString.c_str());
 #endif
 	DisplayPixels();
 }
