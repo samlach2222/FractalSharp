@@ -248,6 +248,11 @@ void CreateMandelbrotImage(color** pixels)
 	std::string path = "/tmp/Mandelbrot.bmp";
 #endif
 	SDL_SaveBMP(surface, path.c_str());
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32) || defined(__CYGWIN__)
+	// Use chmod to give all permissions to everyone ; by default only the current user has write rights
+	std::string chmodCommande = "chmod 777 " + path;
+	system(chmodCommande.c_str());
+#endif
 	std::cout << "Mandelbrot image saved in " << path << std::endl;
 	std::cout << "----------------------------------------------" << std::endl;
 }
