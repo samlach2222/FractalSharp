@@ -176,71 +176,29 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 	DisplayLoadingScreen();
 
 	// Execute the MPI program to generate the Mandelbrot image
-	constexpr char FPPExeName[] = "FractalPlusPlusMPI";
-	constexpr char MPIExeName[] = "mpiexec";
-
+	
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-
-	// Initialize variables used to create the process
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-
-	ZeroMemory(&si, sizeof(si));
-	si.cb = sizeof(si);
-	ZeroMemory(&pi, sizeof(pi));
-
-	// Create TCHAR variable for the command used
-	// TCHAR is a type that can represent a character with either 1 or 2 bytes, which is known at compilation
-	constexpr int commandBufferSize = sizeof(TCHAR) * 200;
-	TCHAR command[commandBufferSize];
-
-	if (nbProcessMpi == 1)
-	{
-		// Store the command in the command variable
-		_stprintf_s(command, commandBufferSize, TEXT("\"%hs\" %d %d %lf %lf %lf %lf"), FPPExeName, pixelWidth, pixelHeight, P1XinAxe, P2XinAxe, P1YinAxe, P2YinAxe);
-	}
-	else
-	{
-		// Store the command in the command variable
-		_stprintf_s(command, commandBufferSize, TEXT("\"%hs\" -n %d %hs %d %d %lf %lf %lf %lf"), MPIExeName, nbProcessMpi, FPPExeName, pixelWidth, pixelHeight, P1XinAxe, P2XinAxe, P1YinAxe, P2YinAxe);
-	}
-
-	// DEBUG : print the command
-	//std::wcout << "command : " << command << std::endl;
-
-	// Get the directory of both FractalPlusPlus executables
-	TCHAR FPPDirectory[MAX_PATH];
-	GetModuleFileName(NULL, FPPDirectory, MAX_PATH);  // GetModuleFileName includes the executable (it's the path of the current process)...
-	FPPDirectory[_tcslen(FPPDirectory) - strlen(FPPExeName)] = '\0';  // ...So we set the null terminator earlier to only get the directory
-
-	CreateProcess(NULL, command, NULL, NULL, FALSE, 0, NULL, FPPDirectory, &si, &pi);
-
-	// Wait until the program has finished
-	WaitForSingleObject(pi.hProcess, INFINITE);
-
-	// Close handles
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
+	constexpr char FPPExeName[] = "FractalPlusPlusMPI.exe";
 #else
-	const std::string FPPEXENameLinux = "./" + std::string(FPPExeName);  // In linux we need to prepend "./" when it's in the current directory
+	constexpr char FPPExeName[] = "./FractalPlusPlusMPI";  // In linux we need to prepend "./" when it's in the current directory
+#endif
+	constexpr char MPIExeName[] = "mpiexec";
 	std::string commandeString;
 
 	if (nbProcessMpi == 1)
 	{
 		// Store the command in the commandeString variable
-		commandeString = FPPEXENameLinux + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
+		commandeString = std::string(FPPExeName) + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
 	}
 	else
 	{
 		// Store the command in the commandeString variable
-		commandeString = std::string(MPIExeName) + " -n " + std::to_string(nbProcessMpi) + ' ' + FPPEXENameLinux + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
+		commandeString = std::string(MPIExeName) + " -n " + std::to_string(nbProcessMpi) + ' ' + std::string(FPPExeName) + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
 	}
 
-	std::cout << FPPEXENameLinux << std::endl;
-	std::cout << commandeString << std::endl;
 	std::cout.flush();  // Flush the terminal buffer before calling the system method to avoid mixing the output of the two programs
 	system(commandeString.c_str());
-#endif
+
 	DisplayPixels();
 }
 

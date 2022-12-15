@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	// message parsing
 	MPI_Status status;
 
-	if (argc != 7) { // not 6 because in CPP argv[0] is the path of the exe file
+	if (argc != 7) { // Not 6 because argv[0] is the path of the exe file
 		throw new std::invalid_argument("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
 	}
 
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
 	if (rank == 0) {
 		// Display args
-		std::cout << "Arguments ";
+		std::cout << "Arguments : ";
 		for (int i = 1; i < argc; i++) {
 			if (i != argc - 1) {
 				std::cout << argv[i] << " | ";
