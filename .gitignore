@@ -348,3 +348,8 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+
+# Unignore vcxproj.user file for FractalPlusPlus
+# It contains the set working directory
+!FractalPlusPlus/FractalPlusPlusGUI/FractalPlusPlusGUI.vcxproj.user
