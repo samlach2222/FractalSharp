@@ -143,26 +143,17 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 /// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
 /// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
 void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double P2y = 0) {
-	// Debug line
-	std::cout << "----------------------------------------------" << std::endl;
-	std::cout << "Points to calculate Mandelbrot :" << std::endl;
-	std::cout << "P1x = " << P1x << ", P1y = " << P1y << "\nP2x = " << P2x << ", P2y = " << P2y << std::endl;
-	std::cout << "----------------------------------------------" << std::endl;
-
-	// Calculate the new range of the image
+	// Calculate the previous absolute range of the image
 	double rangeX = abs(P2XinAxe - P1XinAxe);
 	double rangeY = abs(P2YinAxe - P1YinAxe);
-	// Display the new range
-	std::cout << "Range of the Mandelbrot set :" << std::endl;
-	std::cout << "rangeX = " << rangeX << ", rangeY = " << rangeY << std::endl;
-	std::cout << "----------------------------------------------" << std::endl;
 
+	// Calculate the new range
 	double localP1XinAxe = P1x / pixelWidth * rangeX - rangeX / 2;
 	double localP1YinAxe = P1y / pixelHeight * rangeY - rangeY / 2;
 	double localP2XinAxe = P2x / pixelWidth * rangeX - rangeX / 2;
 	double localP2YinAxe = P2y / pixelHeight * rangeY - rangeY / 2;
 
-	// Stock the new range of the image for the next image
+	// Reorder the points in case the user selected the area from bottom to top and/or from right to left
 	if (localP1XinAxe < localP2XinAxe)
 	{
 		P1XinAxe = localP1XinAxe;
@@ -183,6 +174,12 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 		P1YinAxe = localP2YinAxe;
 		P2YinAxe = localP1YinAxe;
 	}
+
+	// Display the new range
+	std::cout << "----------------------------------------------" << std::endl;
+	std::cout << "Range of the Mandelbrot set :" << std::endl;
+	std::cout << "rangeX = " << P2XinAxe - P1XinAxe << ", rangeY = " << P2YinAxe - P1YinAxe << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;
 
 	// Execute the MPI program to generate the Mandelbrot image
 
@@ -218,10 +215,10 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 /// <returns>exit code</returns>
 int WindowLoop() {
 	// user mouse events
-	int P1x = 0;
-	int P1y = 0;
-	int P2x = 0;
-	int P2y = 0;
+	int P1x = -1;
+	int P1y = -1;
+	int P2x = -1;
+	int P2y = -1;
 	SDL_Event event;
 	bool running = true;
 
@@ -229,45 +226,45 @@ int WindowLoop() {
 		// wait for mouse click event
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
-			case SDL_MOUSEBUTTONDOWN:
-				if (!rectangleFinished) {
-					P1x = event.button.x;
-					P1y = event.button.y;
-					std::cout << "P1 points at (" + std::to_string(P1x) + ", " + std::to_string(P1y) + ")" << std::endl;
-				}
-				break;
-			case SDL_MOUSEBUTTONUP:
-				if (!rectangleFinished) {
-					if (event.button.x < 0 || event.button.x > pixelWidth || event.button.y < 0 || event.button.y > pixelHeight) {
-						rectangleFinished = false;
+				case SDL_MOUSEBUTTONDOWN:
+					if (!rectangleFinished) {
+						P1x = event.button.x;
+						P1y = event.button.y;
+						std::cout << "\n\n\n\n" << std::endl;  // Separate the Mandelbrot image generations
+						std::cout << "--------------------------------------------------" << std::endl;
+						std::cout << "P1 points at (" + std::to_string(P1x) + ", " + std::to_string(P1y) + ")" << std::endl;
 					}
-					else
+					break;
+				case SDL_MOUSEBUTTONUP:
+					if (!rectangleFinished) {
+						if (event.button.x < 0 || event.button.x > pixelWidth || event.button.y < 0 || event.button.y > pixelHeight) {
+							rectangleFinished = false;
+						}
+						else
+						{
+							std::cout << "P2 points at (" + std::to_string(P2x) + ", " + std::to_string(P2y) + ")" << std::endl;
+
+							rectangleFinished = true;
+
+							CalculateMandelbrot(P1x, P1y, P2x, P2y); // Generate the Mandelbrot image with the selected area
+
+							P1x = -1;
+							P1y = -1;
+							P2x = -1;
+							P2y = -1;
+						}
+					}
+					break;
+				case SDL_MOUSEMOTION:
+					if (P1x != -1 && P1y != -1 && !rectangleFinished)  // Check if the user is holding a click and hasn't released yet
 					{
-						std::cout << "P2 points at (" + std::to_string(P2x) + ", " + std::to_string(P2y) + ")" << std::endl;
-						std::cout << "----------------------------------------------" << std::endl;
-						std::cout << "\n\n\n\n" << std::endl;
-
-						rectangleFinished = true;
-
-						CalculateMandelbrot(P1x, P1y, P2x, P2y); // Execute CalculateMandelbrot in Main Thread (possible memory problem here)
-
-						P1x = 0;
-						P1y = 0;
-						P2x = 0;
-						P2y = 0;
+						P2x = event.button.x;
+						P2y = event.button.y;
 					}
-				}
-				break;
-			case SDL_MOUSEMOTION:
-				if (P1x != 0 && P1y != 0 && !rectangleFinished)  // Check if the user is holding a click and hasn't released yet
-				{
-					P2x = event.button.x;
-					P2y = event.button.y;
-				}
-				break;
-			case SDL_QUIT:
-				running = false;  // End the loop to exit the program
-				break;
+					break;
+				case SDL_QUIT:
+					running = false;  // End the loop to exit the program
+					break;
 			}
 		}
 		SDL_Flip(form);

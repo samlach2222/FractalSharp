@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		std::cout << "Calculating the Mandelbrot set" << std::endl;
-		std::cout << "----------------------------------------------" << std::endl;
+		std::cout << "--------------------------------------------------" << std::endl;
 
 		// Create array of pixels
 		color** pixels = new color * [pixelWidth];
@@ -254,7 +254,7 @@ void CreateMandelbrotImage(color** pixels)
 	system(chmodCommande.c_str());
 #endif
 	std::cout << "Mandelbrot image saved in " << path << std::endl;
-	std::cout << "----------------------------------------------" << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;
 }
 
 
