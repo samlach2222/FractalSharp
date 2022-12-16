@@ -6,7 +6,8 @@ mkdir -p "$OUTPUT"
 # "\cp" is used instead of "cp" because "cp" is sometimes aliased to "cp -i" which asks the user before overwritting
 \cp */*.cpp "$OUTPUT"
 \cp */*.h "$OUTPUT"
-\cp FractalPlusPlusGUI/loading.gif "$OUTPUT"
+\cp "FractalPlusPlusGUI/loading.gif" "$OUTPUT"
+\cp "../FractalSharp logo.ico" "$OUTPUT"
 
 cd "$OUTPUT"
 

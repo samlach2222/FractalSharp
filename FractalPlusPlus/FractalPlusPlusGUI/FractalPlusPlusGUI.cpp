@@ -20,7 +20,6 @@ int getScreenHeight();
 void AskUserNbProcessMpi();
 void CalculateMandelbrot(double, double, double, double);
 void InitializeForm(int, int);
-void DisplayLoadingScreen();
 void DisplayPixels();
 
 /// <summary>
@@ -173,10 +172,8 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 		P2YinAxe = localP1YinAxe;
 	}
 
-	DisplayLoadingScreen();
-
 	// Execute the MPI program to generate the Mandelbrot image
-	
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	constexpr char FPPExeName[] = "FractalPlusPlusMPI.exe";
 #else
@@ -214,7 +211,7 @@ int drawRectangleThreadFunc(void* data) {
 	int mouseX = 0;
 	int mouseY = 0;
 	SDL_Event event;
-	
+
 	while (true) {
 		// wait for mouse click event
 		while (SDL_PollEvent(&event)) {
@@ -287,23 +284,16 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 	// create a new window
 	form = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_OPENGL | SDL_DOUBLEBUF);
 	if (!form) {
-		std::string errorTxt = "Unable to set" + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError();
+		std::string errorTxt = "Unable to set " + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError();
 		throw std::runtime_error(errorTxt);
 	}
 	// Change form name
-	SDL_WM_SetCaption("FractalPlusPlus", "FractalPlusPlus");
+	SDL_WM_SetCaption("FractalPlusPlus", "FractalSharp logo.ico");
 	// set background color of the SDL_Surface
 	SDL_FillRect(form, NULL, SDL_MapRGB(form->format, 40, 44, 52));
-	
+
 	// HERE THREAD
 	displayThread = SDL_CreateThread(drawRectangleThreadFunc, NULL);
-}
-
-/// <summary>
-/// This method display loading.gif in the form while waiting for the end of the calculation
-/// </summary>
-void DisplayLoadingScreen() {
-
 }
 
 /// <summary>

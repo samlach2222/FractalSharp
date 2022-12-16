@@ -83,10 +83,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"</Command>
+      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
+xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif to the same directory as GUI and MPI executable</Message>
+      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -106,10 +107,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"</Command>
+      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
+xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif to the same directory as GUI and MPI executable</Message>
+      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,10 +127,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"</Command>
+      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
+xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif to the same directory as GUI and MPI executable</Message>
+      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -148,10 +151,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"</Command>
+      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
+xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif to the same directory as GUI and MPI executable</Message>
+      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
