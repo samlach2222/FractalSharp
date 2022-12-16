@@ -15,12 +15,13 @@
 #include <filesystem>
 #include <thread>
 
-int getScreenWidth();
-int getScreenHeight();
 void AskUserNbProcessMpi();
 void CalculateMandelbrot(double, double, double, double);
 void InitializeForm(int, int);
-void DisplayPixels();
+int WindowLoop();
+void SetMandelbrotImage();
+int getScreenWidth();
+int getScreenHeight();
 
 /// <summary>
 /// Form where the mandelbrot image is displayed
@@ -81,11 +82,16 @@ double P2YinAxe = P2XinAxe * pixelHeight / pixelWidth;
 /// </summary>
 int nbProcessMpi = 1;
 
+/// <summary>
+/// Main method of the program
+/// </summary>
+/// <returns>exit code</returns>
 int main()
 {
 	AskUserNbProcessMpi();
 	InitializeForm(pixelWidth, pixelHeight);
-	CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
+	CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate a Mandelbrot image before entering the SDL window loop
+	WindowLoop();
 	return 0;
 }
 
@@ -127,9 +133,6 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 	
 	// Change form name and icon
 	SDL_WM_SetCaption("FractalPlusPlus", "FractalSharp logo.ico");
-	
-	// TODO : do something with drawRectangleThreadFunc
-
 }
 
 /// <summary>
@@ -205,51 +208,24 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 	std::cout.flush();  // Flush the terminal buffer before calling the system method to avoid mixing the output of the two programs
 	system(commandeString.c_str());
 
-	DisplayPixels();
+	SetMandelbrotImage();
 }
 
 /// <summary>
-/// This method creates a Bitmap image with the pixels and display it in the form.
-/// This method also let the user zoom in the Mandelbrot image by selecting an area.
-/// </summary>
-void DisplayPixels() {
-	// Change the image to the generated Mandelbrot image
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
-#else
-	std::string path = "/tmp/Mandelbrot.bmp";
-#endif
-	SDL_Surface* image = SDL_LoadBMP(path.c_str());
-	if (!image) {
-		throw std::runtime_error(std::string("Error loading image: ") + SDL_GetError());
-	}
-	rectangleFinished = false;
-
-	// Display the image in the form
-	SDL_BlitSurface(image, NULL, form, NULL);
-	SDL_Flip(form);
-}
-
-/// <summary>
-/// Method of the SDL window to draw the rectangle when the user is selecting an area to zoom in
+/// Looping method of the SDL window to draw the rectangle when the user is selecting an area to zoom in
 /// and to calculate the Mandelbrot image when the user has finished selecting an area.
 /// </summary>
-/// <param name="data"></param>
 /// <returns>exit code</returns>
-int drawRectangleThreadFunc(void* data) {
+int WindowLoop() {
 	// user mouse events
 	int P1x = 0;
 	int P1y = 0;
 	int P2x = 0;
 	int P2y = 0;
-	bool mouseDown = false;
-	bool mouseUp = false;
-	bool mouseMove = false;
-	int mouseX = 0;
-	int mouseY = 0;
 	SDL_Event event;
+	bool running = true;
 
-	while (true) {
+	while (running) {
 		// wait for mouse click event
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -259,9 +235,6 @@ int drawRectangleThreadFunc(void* data) {
 					P1y = event.button.y;
 					std::cout << "P1 points at (" + std::to_string(P1x) + ", " + std::to_string(P1y) + ")" << std::endl;
 				}
-				//mouseDown = true;
-				//mouseX = event.button.x;
-				//mouseY = event.button.y;
 				break;
 			case SDL_MOUSEBUTTONUP:
 				if (!rectangleFinished) {
@@ -284,27 +257,44 @@ int drawRectangleThreadFunc(void* data) {
 						P2y = 0;
 					}
 				}
-				//mouseUp = true;
-				//mouseX = event.button.x;
-				//mouseY = event.button.y;
 				break;
 			case SDL_MOUSEMOTION:
-				if (P1x != 0 && P1y != 0 && !rectangleFinished)
+				if (P1x != 0 && P1y != 0 && !rectangleFinished)  // Check if the user is holding a click and hasn't released yet
 				{
 					P2x = event.button.x;
 					P2y = event.button.y;
 				}
-				//mouseMove = true;
-				//mouseX = event.button.x;
-				//mouseY = event.button.y;
 				break;
 			case SDL_QUIT:
+				running = false;  // End the loop to exit the program
 				break;
 			}
 		}
-		// DRAWING STARTS HERE
+		SDL_Flip(form);
 	}
 	return 0;
+}
+
+/// <summary>
+/// Set the newly generated Mandelbrot image in the SDL hidden buffer
+/// Calling SDL_Flip(form) is needed to swap the buffers and display the image
+/// </summary>
+void SetMandelbrotImage() {
+	// Get the path of the Mandelbrot image
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
+#else
+	std::string path = "/tmp/Mandelbrot.bmp";
+#endif
+	SDL_Surface* image = SDL_LoadBMP(path.c_str());
+	if (!image) {
+		throw std::runtime_error(std::string("Error loading image: ") + SDL_GetError());
+	}
+	
+	rectangleFinished = false;  // Reset the rectangleFinished variable to allow the user to select a new area to zoom in
+
+	// Display the image (in the hidden buffer)
+	SDL_BlitSurface(image, NULL, form, NULL);
 }
 
 /// <summary>
