@@ -29,7 +29,7 @@ class Program
             args = new string[] { "1280", "720", "-2.0", "2.0", "-1.125", "1.125" };
 #else
             throw new ArgumentException("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
-#endif            
+#endif
         }
 
         // Get values from arguments

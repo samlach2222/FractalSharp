@@ -12,7 +12,7 @@ if "%releaseDate%"=="%debugDate%" (
 		timeout 5
 		exit
 	)
-	
+
 	echo Release and Debug builds have the same modified time
 	echo Release will be used
 	set buildPath=%RELEASE_PATH%
@@ -42,12 +42,12 @@ if "%releaseDate%"=="%debugDate%" (
 		set buildPath=%DEBUG_PATH%
 		echo The Debug build is more recent
 		echo Debug will be used
-		goto BuildKnown	
+		goto BuildKnown
 	)
 )
 
 :BuildKnown
 echo.
-set /p nbProcesses=Enter the number of processes : 
+set /p nbProcesses=Enter the number of processes :
 echo --------------------------------------------------
 mpiexec -n %nbProcesses% %buildPath%

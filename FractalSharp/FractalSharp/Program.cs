@@ -12,7 +12,7 @@ class Program
     private static readonly PictureBox pictureBox = new();
 
     /// <summary>
-    /// Form where the PictureBox is 
+    /// Form where the PictureBox is
     /// </summary>
     private static readonly Form form = new();
 
@@ -359,9 +359,9 @@ class Program
 }
 
 /*
- * TO RUN : 
+ * TO RUN :
  * mpiexec -n 8 FractalSharpMPI.exe
- * 
- * TO DO : 
+ *
+ * TO DO :
  * Optimizations
  */
