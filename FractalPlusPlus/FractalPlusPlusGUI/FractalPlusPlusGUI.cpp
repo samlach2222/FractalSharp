@@ -1,6 +1,6 @@
 #include <iostream>
 #include <SDL/SDL.h>
-#include "SDL/SDL_thread.h"
+#include <SDL/SDL_thread.h>
 #undef main // Needed to overwrite the overwritten main method by SDL
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -26,11 +26,6 @@ void DisplayPixels();
 /// Form where the mandelbrot image is displayed
 /// </summary>
 SDL_Surface* form;
-
-/// <summary>
-/// Thread where the form is displayed (to avoid blocking the main thread)
-/// </summary>
-SDL_Thread* displayThread = NULL;
 
 /// <summary>
 /// Width of the main screen in pixel
@@ -94,18 +89,6 @@ int main()
 	return 0;
 }
 
-int getScreenWidth() {
-	SDL_Init(SDL_INIT_EVERYTHING);
-	const SDL_VideoInfo* info = SDL_GetVideoInfo();
-	return info->current_w;
-}
-
-int getScreenHeight() {
-	SDL_Init(SDL_INIT_EVERYTHING);
-	const SDL_VideoInfo* info = SDL_GetVideoInfo();
-	return info->current_h;
-}
-
 /// <summary>
 /// Ask the user the number of process to use
 /// 1 is without MPI
@@ -121,6 +104,31 @@ void AskUserNbProcessMpi() {
 			std::cout << "\nYou must type a number greater than 0" << std::endl;
 		}
 	} while (nbProcessMpi < 1);
+}
+
+/// <summary>
+/// This method initialize the form where the user is able to see and zoom in the Mandelbrot image
+/// </summary>
+/// <param name="pixelWidth">the width of the Mandelbrot image in pixels. It's also the width of the form's content</param>
+/// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
+void InitializeForm(int pixelWidth, int pixelHeight) {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		throw std::runtime_error(std::string("Unable to init SDL: ") + SDL_GetError());
+	}
+	// make sure SDL cleans up before exit
+	atexit(SDL_Quit);
+	// create a new window
+	form = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_OPENGL | SDL_DOUBLEBUF);
+	if (!form) {
+		throw std::runtime_error("Unable to set " + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError());
+	}
+	// Change form name
+	SDL_WM_SetCaption("FractalPlusPlus", "FractalSharp logo.ico");
+	// set background color of the SDL_Surface
+	SDL_FillRect(form, NULL, SDL_MapRGB(form->format, 40, 44, 52));
+
+	// TODO : do something with drawRectangleThreadFunc
+
 }
 
 /// <summary>
@@ -199,6 +207,34 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 	DisplayPixels();
 }
 
+/// <summary>
+/// This method creates a Bitmap image with the pixels and display it in the form.
+/// This method also let the user zoom in the Mandelbrot image by selecting an area.
+/// </summary>
+void DisplayPixels() {
+	// Change the image to the generated Mandelbrot image
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
+#else
+	std::string path = "/tmp/Mandelbrot.bmp";
+#endif
+	SDL_Surface* image = SDL_LoadBMP(path.c_str());
+	if (!image) {
+		throw std::runtime_error(std::string("Error loading image: ") + SDL_GetError());
+	}
+	rectangleFinished = false;
+
+	// Display the image in the form
+	SDL_BlitSurface(image, NULL, form, NULL);
+	SDL_Flip(form);
+}
+
+/// <summary>
+/// Method of the SDL window to draw the rectangle when the user is selecting an area to zoom in
+/// and to calculate the Mandelbrot image when the user has finished selecting an area.
+/// </summary>
+/// <param name="data"></param>
+/// <returns>exit code</returns>
 int drawRectangleThreadFunc(void* data) {
 	// user mouse events
 	int P1x = 0;
@@ -271,49 +307,21 @@ int drawRectangleThreadFunc(void* data) {
 }
 
 /// <summary>
-/// This method initialize the form where the user is able to see and zoom in the Mandelbrot image
+/// Get the screen width in pixels
 /// </summary>
-/// <param name="pixelWidth">the width of the Mandelbrot image in pixels. It's also the width of the form's content</param>
-/// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
-void InitializeForm(int pixelWidth, int pixelHeight) {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		throw std::runtime_error(std::string("Unable to init SDL: ") + SDL_GetError());
-	}
-	// make sure SDL cleans up before exit
-	atexit(SDL_Quit);
-	// create a new window
-	form = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_OPENGL | SDL_DOUBLEBUF);
-	if (!form) {
-		std::string errorTxt = "Unable to set " + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError();
-		throw std::runtime_error(errorTxt);
-	}
-	// Change form name
-	SDL_WM_SetCaption("FractalPlusPlus", "FractalSharp logo.ico");
-	// set background color of the SDL_Surface
-	SDL_FillRect(form, NULL, SDL_MapRGB(form->format, 40, 44, 52));
-
-	// HERE THREAD
-	displayThread = SDL_CreateThread(drawRectangleThreadFunc, NULL);
+/// <returns>screen width in pixels</returns>
+int getScreenWidth() {
+	SDL_Init(SDL_INIT_EVERYTHING);
+	const SDL_VideoInfo* info = SDL_GetVideoInfo();
+	return info->current_w;
 }
 
 /// <summary>
-/// This method creates a Bitmap image with the pixels and display it in the form.
-/// This method also let the user zoom in the Mandelbrot image by selecting an area.
+/// Get the screen height in pixels
 /// </summary>
-void DisplayPixels() {
-	// Change the image to the generated Mandelbrot image
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
-#else
-	std::string path = "/tmp/Mandelbrot.bmp";
-#endif
-	SDL_Surface* image = SDL_LoadBMP(path.c_str());
-	if (!image) {
-		throw std::runtime_error(std::string("Error loading image: ") + SDL_GetError());
-	}
-	rectangleFinished = false;
-
-	// Display the image in the form
-	SDL_BlitSurface(image, NULL, form, NULL);
-	SDL_Flip(form);
+/// <returns>screen height in pixels</returns>
+int getScreenHeight() {
+	SDL_Init(SDL_INIT_EVERYTHING);
+	const SDL_VideoInfo* info = SDL_GetVideoInfo();
+	return info->current_h;
 }
