@@ -112,21 +112,22 @@ void AskUserNbProcessMpi() {
 /// <param name="pixelWidth">the width of the Mandelbrot image in pixels. It's also the width of the form's content</param>
 /// <param name="pixelHeight">the height of the Mandelbrot image in pixels. It's also the height of the form's content</param>
 void InitializeForm(int pixelWidth, int pixelHeight) {
+	
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		throw std::runtime_error(std::string("Unable to init SDL: ") + SDL_GetError());
 	}
+	
 	// make sure SDL cleans up before exit
 	atexit(SDL_Quit);
 	// create a new window
-	form = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_OPENGL | SDL_DOUBLEBUF);
+	form = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
 	if (!form) {
 		throw std::runtime_error("Unable to set " + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError());
 	}
-	// Change form name
+	
+	// Change form name and icon
 	SDL_WM_SetCaption("FractalPlusPlus", "FractalSharp logo.ico");
-	// set background color of the SDL_Surface
-	SDL_FillRect(form, NULL, SDL_MapRGB(form->format, 40, 44, 52));
-
+	
 	// TODO : do something with drawRectangleThreadFunc
 
 }
