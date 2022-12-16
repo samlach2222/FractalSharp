@@ -353,3 +353,6 @@ MigrationBackup/
 # Unignore vcxproj.user file for FractalPlusPlus
 # It contains the set working directory
 !FractalPlusPlus/FractalPlusPlusGUI/FractalPlusPlusGUI.vcxproj.user
+
+# Ignore FPP Linux build folder
+FractalPlusPlus/build_linux/
