@@ -132,7 +132,7 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 	}
 	
 	// Change form name and icon
-	SDL_WM_SetCaption("FractalPlusPlus", "FractalSharp logo.ico");
+	SDL_WM_SetCaption("FractalPlusPlus", nullptr);
 }
 
 /// <summary>

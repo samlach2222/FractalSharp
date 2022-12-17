@@ -1,19 +1,17 @@
 #!/bin/bash
-readonly OUTPUT=build_linux
+readonly OUTPUT=build_linux/
 readonly IMAGE=/tmp/Mandelbrot.bmp
 # Create directory and copy all necessary files in it
 mkdir -p "$OUTPUT"
 # "\cp" is used instead of "cp" because "cp" is sometimes aliased to "cp -i" which asks the user before overwritting
-\cp */*.cpp "$OUTPUT"
-\cp */*.h "$OUTPUT"
-\cp "FractalPlusPlusGUI/loading.gif" "$OUTPUT"
-\cp "../FractalSharp logo.ico" "$OUTPUT"
+\cp "FractalPlusPlusGUI/FractalPlusPlusGUI.cpp" "$OUTPUT" # GUI files
+\cp "FractalPlusPlusMPI/Complex.cpp" "FractalPlusPlusMPI/Complex.h" "FractalPlusPlusMPI/FractalPlusPlusMPI.cpp" "$OUTPUT" # MPI files
 
 cd "$OUTPUT"
 
 # Compile both projects
-mpic++ "FractalPlusPlusMPI.cpp" "Complex.cpp" -lSDL -pthread -Wall -I/urs/local/include -o "FractalPlusPlusMPI"
-mpic++ "FractalPlusPlusGUI.cpp" -lSDL -pthread -Wall -I/urs/local/include -o "FractalPlusPlusGUI"
+mpic++ "FractalPlusPlusMPI.cpp" "Complex.cpp" -lSDL -Wall -I/urs/local/include -o "FractalPlusPlusMPI"
+g++ "FractalPlusPlusGUI.cpp" -lSDL -Wall -I/urs/local/include -o "FractalPlusPlusGUI"
 
 # Check if the Mandelbrot image exists
 if [[ -f "$IMAGE" ]]

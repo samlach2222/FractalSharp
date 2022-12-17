@@ -83,11 +83,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
-xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -110,11 +111,12 @@ xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
-xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -133,11 +135,12 @@ xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
-xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
@@ -160,11 +163,12 @@ xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /D "$(ProjectDir)loading.gif" "$(OutDir)"
-xcopy /D "$(SolutionDir)..\FractalSharp logo.ico" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy loading.gif and the logo .ico to the same directory as GUI and MPI executable</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <Manifest>
       <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
