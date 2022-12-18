@@ -249,7 +249,8 @@ void CreateMandelbrotImage(color** pixels)
 #endif
 	SDL_SaveBMP(surface, path.c_str());
 #if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32) || defined(__CYGWIN__)
-	// Use chmod to give all permissions to everyone ; by default only the current user has write rights
+	// Use chmod to give all permissions to everyone
+	// By default only the current user has write rights, which stops us from using the same machine as different users
 	std::string chmodCommande = "chmod 777 " + path;
 	system(chmodCommande.c_str());
 #endif
