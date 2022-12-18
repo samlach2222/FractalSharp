@@ -15,6 +15,12 @@ typedef struct color {
 	int b;
 } color;
 
+int main(int, char* []);
+bool IsDiverging(color);
+void CreateMandelbrotImage(color**);
+color GetPixelColor(int, int, int, int, double, double, double, double);
+void DefineColorStruct(MPI_Datatype*);
+
 /// <summary>
 /// Width of the image
 /// </summary>
@@ -24,12 +30,6 @@ int pixelWidth;
 /// Height of the image
 /// </summary>
 int pixelHeight;
-
-int main(int, char* []);
-bool IsDiverging(color);
-void CreateMandelbrotImage(color**);
-color GetPixelColor(int, int, int, int, double, double, double, double);
-void defineColorStruct(MPI_Datatype* tstype);
 
 /// <summary>
 /// Main method of the program
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 	// Declare MPI type for the color struct
 	MPI_Datatype colorType;
 	// Initialize MPI type for the color struct
-	defineColorStruct(&colorType);
+	DefineColorStruct(&colorType);
 	// Message parsing
 	MPI_Status status;
 
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 /// Define MPI type with struct color
 /// </summary>
 /// <param name="tstype">MPI type</param>
-void defineColorStruct(MPI_Datatype* colorType) {
+void DefineColorStruct(MPI_Datatype* colorType) {
 	const int count = 3;
 	int blocklens[count] = { 1, 1, 1 };
 	MPI_Datatype types[count] = { MPI_INT, MPI_INT, MPI_INT };

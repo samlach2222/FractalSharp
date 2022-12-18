@@ -1,5 +1,7 @@
-#include "Complex.h"
 #include <cmath>
+
+#include "Complex.h"
+
 
 /// <summary>
 /// Constructor without parameters to create a 0 + 0i number

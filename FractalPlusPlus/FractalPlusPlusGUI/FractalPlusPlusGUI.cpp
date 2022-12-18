@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <thread>
 
+
 void AskUserNbProcessMpi();
 void CalculateMandelbrot(double, double, double, double);
 void InitializeForm(int, int);
@@ -144,12 +145,12 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 }
 
 /// <summary>
-/// Call the MPI program to calculate the Mandelbrot with all the parameters
+/// Call the MPI program to calculate Mandelbrot with all the parameters
 /// </summary>
-/// <param name="P1x">Optional parameter which is the x coordinate of the first point after selecting an area to zoom in</param>
-/// <param name="P1y">Optional parameter which is the y coordinate of the first point after selecting an area to zoom in</param>
-/// <param name="P2x">Optional parameter which is the x coordinate of the second point after selecting an area to zoom in</param>
-/// <param name="P2y">Optional parameter which is the y coordinate of the second point after selecting an area to zoom in</param>
+/// <param name="P1x">Optional parameter which is the x coordinate of the top left point after selecting an area to zoom in</param>
+/// <param name="P1y">Optional parameter which is the y coordinate of the top left point after selecting an area to zoom in</param>
+/// <param name="P2x">Optional parameter which is the x coordinate of the bottom right point after selecting an area to zoom in</param>
+/// <param name="P2y">Optional parameter which is the y coordinate of the bottom right point after selecting an area to zoom in</param>
 void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double P2y = 0) {
 	// Calculate the previous absolute range of the image
 	double rangeX = abs(P2XinAxe - P1XinAxe);
