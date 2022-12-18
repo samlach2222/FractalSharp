@@ -16,12 +16,12 @@ typedef struct color {
 } color;
 
 /// <summary>
-/// width of the image
+/// Width of the image
 /// </summary>
 int pixelWidth;
 
 /// <summary>
-/// height of the image
+/// Height of the image
 /// </summary>
 int pixelHeight;
 
@@ -48,17 +48,17 @@ int main(int argc, char* argv[])
 {
 	// MPI vars
 	int numtasks, rank;
-	// initialize MPI
+	// Initialize MPI
 	MPI_Init(&argc, &argv);
-	// get number of tasks
+	// Get number of tasks
 	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-	// get my rank
+	// Get my rank
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	// declare MPI type for the color struct
+	// Declare MPI type for the color struct
 	MPI_Datatype colorType;
-	// initialize MPI type for the color struct
+	// Initialize MPI type for the color struct
 	defineColorStruct(&colorType);
-	// message parsing
+	// Message parsing
 	MPI_Status status;
 
 	if (argc != 7) { // Not 6 because argv[0] is the path of the exe file
@@ -95,8 +95,7 @@ int main(int argc, char* argv[])
 		color** pixels = new color * [pixelWidth];
 		for (int i = 0; i < pixelWidth; i++) {
 
-			// Declare a memory block
-			// of size n
+			// Declare a memory block of size n
 			pixels[i] = new color[pixelHeight];
 		}
 
@@ -116,7 +115,7 @@ int main(int argc, char* argv[])
 			color* localPixels;
 			int localPixelsSize = 0;
 
-			if (i == numtasks - 1) { // last task (nPerProc + numberOfPixels % nPerProc) pixels
+			if (i == numtasks - 1) { // Last task (nPerProc + numberOfPixels % nPerProc) pixels
 				localPixelsSize = nPerProc + numberOfPixels % nPerProc + 1;
 				localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
 				MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
@@ -173,7 +172,7 @@ int main(int argc, char* argv[])
 }
 
 /// <summary>
-/// define MPI type with struct color
+/// Define MPI type with struct color
 /// </summary>
 /// <param name="tstype">MPI type</param>
 void defineColorStruct(MPI_Datatype* colorType) {
@@ -234,14 +233,14 @@ void CreateMandelbrotImage(color** pixels)
 			if (IsDiverging(pixels[i][j]))
 			{
 				unsigned char* surfacePixels = (unsigned char*)surface->pixels;
-				surfacePixels[4 * (j * pixelWidth + i) + 0] = pixels[i][j].b; // blue
-				surfacePixels[4 * (j * pixelWidth + i) + 1] = pixels[i][j].g; // green
-				surfacePixels[4 * (j * pixelWidth + i) + 2] = pixels[i][j].r; // red
+				surfacePixels[4 * (j * pixelWidth + i) + 0] = pixels[i][j].b; // Blue
+				surfacePixels[4 * (j * pixelWidth + i) + 1] = pixels[i][j].g; // Green
+				surfacePixels[4 * (j * pixelWidth + i) + 2] = pixels[i][j].r; // Red
 			}
 		}
 	}
 
-	// save file
+	// Save Mandelbrot image as a file
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	std::string path = std::filesystem::temp_directory_path().string() + "Mandelbrot.bmp";
 #else

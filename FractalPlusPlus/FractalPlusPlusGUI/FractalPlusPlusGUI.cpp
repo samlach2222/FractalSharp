@@ -24,7 +24,7 @@ int getScreenWidth();
 int getScreenHeight();
 
 /// <summary>
-/// Window where the mandelbrot image is displayed
+/// Window where the Mandelbrot image is displayed
 /// </summary>
 SDL_Surface* window;
 
@@ -131,9 +131,9 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 		throw std::runtime_error(std::string("Unable to init SDL: ") + SDL_GetError());
 	}
 	
-	// make sure SDL cleans up before exit
+	// Make sure SDL cleans up before exit
 	atexit(SDL_Quit);
-	// create a new window
+	// Create a new window
 	window = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
 	if (!window) {
 		throw std::runtime_error("Unable to set " + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError());
@@ -194,7 +194,7 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	constexpr char FPPExeName[] = "FractalPlusPlusMPI.exe";
 #else
-	constexpr char FPPExeName[] = "./FractalPlusPlusMPI";  // In linux we need to prepend "./" when it's in the current directory
+	constexpr char FPPExeName[] = "./FractalPlusPlusMPI"; // In linux we need to prepend "./" when it's in the current directory
 #endif
 	constexpr char MPIExeName[] = "mpiexec";
 	std::string commandeString;
@@ -210,7 +210,7 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 		commandeString = std::string(MPIExeName) + " -n " + std::to_string(nbProcessMpi) + ' ' + std::string(FPPExeName) + ' ' + std::to_string(pixelWidth) + ' ' + std::to_string(pixelHeight) + ' ' + std::to_string(P1XinAxe) + ' ' + std::to_string(P2XinAxe) + ' ' + std::to_string(P1YinAxe) + ' ' + std::to_string(P2YinAxe);
 	}
 
-	std::cout.flush();  // Flush the terminal buffer before calling the system method to avoid mixing the output of the two programs
+	std::cout.flush(); // Flush the terminal buffer before calling the system method to avoid mixing the output of the two programs
 	system(commandeString.c_str());
 
 	SetMandelbrotImage();
@@ -246,7 +246,7 @@ int WindowLoop() {
 					if (rectangleAvailable) {
 						P1x = event.button.x;
 						P1y = event.button.y;
-						std::cout << "\n\n\n\n" << std::endl;  // Separate the Mandelbrot image generations in the console
+						std::cout << "\n\n\n\n" << std::endl; // Separate the Mandelbrot image generations in the console
 						std::cout << "--------------------------------------------------" << std::endl;
 						std::cout << "P1 points at (" + std::to_string(P1x) + ", " + std::to_string(P1y) + ")" << std::endl;
 					}
@@ -276,7 +276,7 @@ int WindowLoop() {
 						int mouseP2x = event.button.x;
 						int mouseP2y = event.button.y;
 
-						SDL_BlitSurface(image, NULL, window, NULL);  // We need to redisplay the Mandelbrot image otherwise the rectangles overlap
+						SDL_BlitSurface(image, NULL, window, NULL); // We need to redisplay the Mandelbrot image otherwise the rectangles overlap
 
 						// Don't draw the rectangle if the user is trying to zoom from right to left or from bottom to top
 						if (P1x < mouseP2x && P1y < mouseP2y) {
@@ -294,8 +294,8 @@ int WindowLoop() {
 							}
 							
 							// Calculate the position of the bottom right corner of the rectangle to zoom in
-							P2x = P1x + (step * xStep) + xStep;  // Round the width to the nearest superior multiple of xStep
-							P2y = P1y + (step * yStep) + yStep;  // Round the height to the nearest superior multiple of yStep
+							P2x = P1x + (step * xStep) + xStep; // Round the width to the nearest superior multiple of xStep
+							P2y = P1y + (step * yStep) + yStep; // Round the height to the nearest superior multiple of yStep
 							int rectangleWidth = P2x - P1x;
 							int rectangleHeight = P2y - P1y;
 							
@@ -321,11 +321,11 @@ int WindowLoop() {
 					}
 					break;
 				case SDL_QUIT:
-					running = false;  // End the loop to exit the program
+					running = false; // End the loop to exit the program
 					break;
 			}
 		}
-		SDL_Flip(window);  // Swap the buffers to display the new image or update the rectangle to zoom in
+		SDL_Flip(window); // Swap the buffers to display the new image or update the rectangle to zoom in
 	}
 	return 0;
 }
@@ -371,7 +371,7 @@ void SetMandelbrotImage() {
 		throw std::runtime_error(std::string("Error loading image: ") + SDL_GetError());
 	}
 	
-	rectangleAvailable = true;  // Reset the variable to allow the user to select a new area to zoom in
+	rectangleAvailable = true; // Reset the variable to allow the user to select a new area to zoom in
 
 	// Display the image (in the hidden buffer)
 	SDL_BlitSurface(image, NULL, window, NULL);
