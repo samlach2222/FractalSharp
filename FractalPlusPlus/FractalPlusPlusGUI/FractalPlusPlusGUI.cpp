@@ -19,6 +19,7 @@ void AskUserNbProcessMpi();
 void CalculateMandelbrot(double, double, double, double);
 void InitializeForm(int, int);
 int WindowLoop();
+const int GreatestCommonDivisor(int, int);
 void SetMandelbrotImage();
 int getScreenWidth();
 int getScreenHeight();
@@ -54,7 +55,10 @@ int pixelWidth = (int)(screenWidth * ratioImage);
 /// </summary>
 int pixelHeight = (int)(screenHeight * ratioImage);
 
-bool rectangleFinished = true;
+/// <summary>
+/// Whether the user can draw a rectangle to zoom in the Mandelbrot image
+/// </summary>
+bool rectangleAvailable = false;
 
 /// <summary>
 /// X coord of P1 in the axe
@@ -214,52 +218,75 @@ void CalculateMandelbrot(double P1x = 0, double P1y = 0, double P2x = 0, double 
 /// </summary>
 /// <returns>exit code</returns>
 int WindowLoop() {
-	// user mouse events
+	
+	// Mouse position when first pressing left click and top left corner of the rectangle to zoom in
 	int P1x = -1;
 	int P1y = -1;
-	int P2x = -1;
-	int P2y = -1;
+
+	// Mouse position while holding left click
+	int mouseP2x = -1;
+	int mouseP2y = -1;
+
+	// Position used for the bottom right corner of the rectangle to zoom in, calculated from the mouse position
+	int rectangleP2x = -1;
+	int rectangleP2y = -1;
+
+	// Finding the steps to use to draw the rectangle
+	const int gcd = GreatestCommonDivisor(pixelWidth, pixelHeight);
+	int xStep = pixelWidth / gcd;
+	int yStep = pixelHeight / gcd;
+
 	SDL_Event event;
 	bool running = true;
 
 	while (running) {
-		// wait for mouse click event
+		// Wait for mouse click event or quit event
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_MOUSEBUTTONDOWN:
-					if (!rectangleFinished) {
+					if (rectangleAvailable) {
 						P1x = event.button.x;
 						P1y = event.button.y;
-						std::cout << "\n\n\n\n" << std::endl;  // Separate the Mandelbrot image generations
+						std::cout << "\n\n\n\n" << std::endl;  // Separate the Mandelbrot image generations in the console
 						std::cout << "--------------------------------------------------" << std::endl;
 						std::cout << "P1 points at (" + std::to_string(P1x) + ", " + std::to_string(P1y) + ")" << std::endl;
 					}
 					break;
 				case SDL_MOUSEBUTTONUP:
-					if (!rectangleFinished) {
-						if (event.button.x < 0 || event.button.x > pixelWidth || event.button.y < 0 || event.button.y > pixelHeight) {
-							rectangleFinished = false;
+					if (rectangleAvailable) {
+						//Don't zoom if the user tried to zoom from right to left or from bottom to top
+						if (P1x < mouseP2x && P1y < mouseP2y) {
+							std::cout << "P2 points at (" + std::to_string(mouseP2x) + ", " + std::to_string(mouseP2y) + ")" << std::endl;
+
+							rectangleAvailable = false;
+
+							CalculateMandelbrot(P1x, P1y, mouseP2x, mouseP2y); // Generate the Mandelbrot image with the selected area
 						}
-						else
-						{
-							std::cout << "P2 points at (" + std::to_string(P2x) + ", " + std::to_string(P2y) + ")" << std::endl;
 
-							rectangleFinished = true;
-
-							CalculateMandelbrot(P1x, P1y, P2x, P2y); // Generate the Mandelbrot image with the selected area
-
-							P1x = -1;
-							P1y = -1;
-							P2x = -1;
-							P2y = -1;
-						}
+						// Reset values of the rectangle to zoom in
+						P1x = -1;
+						P1y = -1;
+						mouseP2x = -1;
+						mouseP2y = -1;
+						rectangleP2x = -1;
+						rectangleP2y = -1;
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					if (P1x != -1 && P1y != -1 && !rectangleFinished)  // Check if the user is holding a click and hasn't released yet
+					// Check if the user is holding a left click and hasn't released yet
+					if (P1x != -1 && P1y != -1 && rectangleAvailable)
 					{
-						P2x = event.button.x;
-						P2y = event.button.y;
+						mouseP2x = event.button.x;
+						mouseP2y = event.button.y;
+
+						// Don't update the rectangle if the user is trying to zoom from right to left or from bottom to top
+						if (P1x < mouseP2x && P1y < mouseP2y) {
+							// Calculate the position of the bottom right corner of the rectangle to zoom in
+							rectangleP2x = P1x + ((mouseP2x - P1x) / xStep * xStep) + xStep;  // Round the width to the nearest superior multiple of xStep
+							rectangleP2y = P1y + ((mouseP2y - P1y) / yStep * yStep) + yStep;  // Round the height to the nearest superior multiple of yStep
+						}
+						
+						// TODO : Draw the rectangle here
 					}
 					break;
 				case SDL_QUIT:
@@ -267,9 +294,34 @@ int WindowLoop() {
 					break;
 			}
 		}
-		SDL_Flip(form);
+		SDL_Flip(form);  // Swap the buffers to display the new image or update the rectangle to zoom in
 	}
 	return 0;
+}
+
+/// <summary>
+/// Returns the greatest common divisor of two numbers passed in parameters
+/// </summary>
+/// <param name="a">First number</param>
+/// <param name="b">Second number</param>
+/// <returns>the greatest common divisor</returns>
+const int GreatestCommonDivisor(int a, int b)
+{
+	// We found the greatest common divisor
+	if (a == 0) {
+		return b;
+	}
+	if (b == 0) {
+		return a;
+	}
+
+	// We search the greatest common divisor
+	if (a > b) {
+		return GreatestCommonDivisor(b, a % b);
+	}
+	else {
+		return GreatestCommonDivisor(a, b % a);
+	}
 }
 
 /// <summary>
@@ -288,7 +340,7 @@ void SetMandelbrotImage() {
 		throw std::runtime_error(std::string("Error loading image: ") + SDL_GetError());
 	}
 	
-	rectangleFinished = false;  // Reset the rectangleFinished variable to allow the user to select a new area to zoom in
+	rectangleAvailable = true;  // Reset the variable to allow the user to select a new area to zoom in
 
 	// Display the image (in the hidden buffer)
 	SDL_BlitSurface(image, NULL, form, NULL);
