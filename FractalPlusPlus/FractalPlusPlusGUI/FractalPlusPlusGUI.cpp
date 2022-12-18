@@ -35,16 +35,6 @@ SDL_Surface* window;
 SDL_Surface* image;
 
 /// <summary>
-/// Width of the main screen in pixel
-/// </summary>
-int screenWidth = getScreenWidth();
-
-/// <summary>
-/// Height of the main screen in pixel
-/// </summary>
-int screenHeight = getScreenHeight();
-
-/// <summary>
 /// Ratio size of the image.
 /// Here 80% of the screen size.
 /// </summary>
@@ -53,12 +43,12 @@ constexpr double ratioImage = 0.8;
 /// <summary>
 /// Width in pixel of the image
 /// </summary>
-int pixelWidth = (int)(screenWidth * ratioImage);
+int pixelWidth = (int)(getScreenWidth() * ratioImage);
 
 /// <summary>
 /// Height in pixel of the image
 /// </summary>
-int pixelHeight = (int)(screenHeight * ratioImage);
+int pixelHeight = (int)(getScreenHeight() * ratioImage);
 
 /// <summary>
 /// Whether the user can draw a rectangle to zoom in the Mandelbrot image
