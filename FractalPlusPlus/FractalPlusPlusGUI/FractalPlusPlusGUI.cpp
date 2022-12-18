@@ -2,14 +2,6 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_thread.h>
 #undef main // Needed to overwrite the overwritten main method by SDL
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-
-#else
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <spawn.h>
-#endif
 #include <string>
 #include <filesystem>
 #include <thread>
