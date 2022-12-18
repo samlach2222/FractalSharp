@@ -195,10 +195,9 @@ bool IsDiverging(color pixel)
 }
 
 /// <summary>
-/// This method creates a Bitmap image with the pixels and display it in the form.
-/// This method also let the user zoom in the Mandelbrot image by selecting an area.
+/// This method creates a Bitmap image with the pixels passed in parameter
 /// </summary>
-/// <param name="pixels">2D array of PixelColor (r,g,b) which contains the color of each pixel</param>
+/// <param name="pixels">2D array of color (r,g,b) which contains the color of each pixel</param>
 void CreateMandelbrotImage(color** pixels)
 {
 	// Create the surface
@@ -268,8 +267,10 @@ void CreateMandelbrotImage(color** pixels)
 /// <param name="iYpos">Y position of the pixel</param>
 /// <param name="pixelWidth">number of pixels in width</param>
 /// <param name="pixelHeight">number of pixels in height</param>
-/// <param name="rangeX">range of the X axis (example : 4 is for [-2, 2])</param>
-/// <param name="rangeY">range of the Y axis (example : 4 is for [-2, 2])</param>
+/// <param name="minRangeX">minimum range of the X axis</param>
+/// <param name="maxRangeX">maximum range of the X axis</param>
+/// <param name="minRangeY">minimum range of the Y axis</param>
+/// <param name="maxRangeY">maximum range of the Y axis</param>
 /// <returns>color of the pixel</returns>
 color GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, double minRangeX, double maxRangeX, double minRangeY, double maxRangeY)
 {
@@ -277,8 +278,6 @@ color GetPixelColor(int iXpos, int iYpos, int pixelWidth, int pixelHeight, doubl
 
 	double rangeXPos = (double)iXpos / (double)pixelWidth * (maxRangeX - minRangeX) + minRangeX;
 	double rangeYPos = (double)iYpos / (double)pixelHeight * (maxRangeY - minRangeY) + minRangeY;
-	// DEBUG : print rangeXPos and rangeYPos
-	//std::cout << "rangeXPos = " << rangeXPos << ", rangeYPos = " << rangeYPos << "\n";
 
 	Complex c = Complex(rangeXPos, rangeYPos);
 	Complex z = Complex(0, 0);
