@@ -151,17 +151,18 @@ processes, the better the performance).
 To launch the program, we'll first compile it. Since FractalSharp
 and FractalPlusPlus are two different programs, we will detail the compilation steps for each.
 1. Go to the Source Code folder in the archive, or (optionally) clone from git [https://github.com/samlach2222/FractalSharp.git](https://github.com/samlach2222/FractalSharp.git)
-2. Go to the FractalSharp folder for the C# project and FractalPlusPlus for the C++ project.
 
 **FractalSharp (Windows)**
-1. Install Visual Studio, then launch the project with the `FractalSharp.sln` file.
-2. Right-click on the solution, then `Generate solution`.
-3. Go to the `.\FractalSharpbin\[Release|Debug]\net6.0-windows\` folder.
+1. Launch this batch file to install MPI and SDL : `REQUIREMENTS/Install_SDL.bat`
+2. Install Visual Studio, then launch the project with the `FractalSharp.sln` file.
+3. Right-click on the solution, then `Generate solution`.
+4. Go to the `.\FractalSharpbin\[Release|Debug]\net6.0-windows\` folder.
 
 **FractalPlusPlus (Windows)**
-1. Install Visual Studio, then launch the project with the `FractalPlus.sln` file.
-2. Right-click on the solution, then `Generate solution`.
-3. Go to the `.\x64\[Release|Debug]\` folder.
+1. Launch this batch file to install MPI and SDL : `REQUIREMENTS/Install_SDL.bat`
+2. Install Visual Studio, then launch the project with the `FractalPlus.sln` file.
+3. Right-click on the solution, then `Generate solution`.
+4. Go to the `.\x64\[Release|Debug]\` folder.
 
 **FractalPlusPlus (Linux)**
 1. Run the installation program with the command `./build_linux.sh`.
