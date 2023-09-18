@@ -1,13 +1,14 @@
 @echo off
 
-REM -----------------------------
-REM TO EXECUTE IN ADMIN MODE ONLY
-REM -----------------------------
-if not "%1"=="am_admin" (powershell start -verb runas '%0' am_admin & exit /b)
 cd /d %~dp0
 
+ECHO ---------------
+ECHO INSTALL MPIEXEC
+ECHO ---------------
+echo You will need administrator privileges for installation
+REM MPI is needed for installing MPI packages with vcpkg
+"MPI WINDOWS INSTALLER.exe" -unattend
 
-ECHO check if git is installed
 git --version >nul 2>&1
 IF errorlevel 1 (
     ECHO -------------------------------------------------------
@@ -15,10 +16,6 @@ IF errorlevel 1 (
     ECHO -------------------------------------------------------
     pause
     exit
-) ELSE (
-    ECHO -----------------
-    ECHO GIT IS INSTALLED.
-    ECHO -----------------
 )
 
 ECHO ------------------
@@ -35,11 +32,8 @@ vcpkg install sdl1:x86-windows
 vcpkg install mpi:x64-windows
 vcpkg install mpi:x86-windows
 vcpkg integrate install
-ECHO ---------------
-ECHO INSTALL MPIEXEC
-ECHO ---------------
-"MPI WINDOWS INSTALLER.exe" -unattend
 
 ECHO --------------------------------------------------
 ECHO ALL IS INSTALLED, YOU CAN NOW LAUNCH VISUAL STUDIO
 ECHO --------------------------------------------------
+timeout 8
