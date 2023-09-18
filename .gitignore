@@ -356,3 +356,7 @@ MigrationBackup/
 
 # Ignore FPP Linux build folder
 FractalPlusPlus/build_linux/
+
+# Ignore VCPKG folder
+REQUIREMENTS/vcpkg/
+vcpkg/
