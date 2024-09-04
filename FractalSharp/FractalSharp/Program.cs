@@ -185,7 +185,9 @@ class Program
         // /!\ This is different from form.Size, which includes borders and titlebar /!\
         form.ClientSize = new Size(pixelWidth, pixelHeight);
         // Change form name
-        form.Text = "FractalSharpMPI";
+        form.Text = "FractalSharp";
+        // Change form icon
+        form.Icon = new Icon("FractalSharp logo.ico");
         // Set pictureBox to fill the form
         pictureBox.Dock = DockStyle.Fill;
         // Set background color of pictureBox

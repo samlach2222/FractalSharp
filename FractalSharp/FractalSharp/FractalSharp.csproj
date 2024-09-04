@@ -24,4 +24,14 @@
 	</None>
   </ItemGroup>
 
+  <ItemGroup>
+    <_DeploymentManifestIconFile Remove="..\..\FractalSharp logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\FractalSharp logo.ico" Link="FractalSharp logo.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
