@@ -360,3 +360,6 @@ FractalPlusPlus/build_linux/
 # Ignore VCPKG folder
 REQUIREMENTS/vcpkg/
 vcpkg/
+
+# Unignore FractalSharp publish profile
+!FractalSharp/FractalSharp/Properties/PublishProfiles/FolderProfile.pubxml
