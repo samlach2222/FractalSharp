@@ -14,7 +14,7 @@
 ## Introduction
 ### En quoi consiste FractalSharp
 Le projet de système distribué FractalSharp consiste en l’implémentation de la suite de Mandelbrot
-en utilisant un système distribué. Il peut être exécuté de plusieurs manières
+en utilisant un système distribué. Il peut être exécuté de plusieurs manières :
 - Sur 1 seul processus
 - Sur une multitude de processus
 - Sur plusieurs machines interconnectées
@@ -37,8 +37,8 @@ prévus pour Linux, pour fonctionner sur le cluster mis à disposition
 ### Découpage du problème
 La problématique peut facilement être découpée à partir de deux points cruciaux :
 - L’image générée par le calcul de la suite de Mandelbrot doit être réalisé par **un programme à part**
-(Les version ...MPI des programmes) car on ne peut pas relancer de calcul MPI à partir d’un programme
-qui viens de finir son calcul MPI (Les processus MPI finissent le programme main et ne peuvent donc
+(les version ...MPI des programmes) car on ne peut pas relancer de calcul MPI à partir d’un programme
+qui viens de finir son calcul MPI (les processus MPI finissent le programme main et ne peuvent donc
 pas être recréés).
 - L’affichage de l’image et la partie qui demande le calcul de la suite de Mandelbrot au programme MPI
 doivent tout deux être dans **un Thread différent** car l’attente des clics souris pour dessiner le
@@ -121,8 +121,8 @@ intéresser aux performances de C#, mais les performances C++ commencent à êtr
 intéressantes.
 
 Les temps en secondes commencent à être de plus en plus grands, et les performances Windows et Linux de
-plus en plus proches. L’hypothèse précédente commence à se confirmer, Les performances sont maintenant
-mauvaises avec peu de processus MPI, et deviennent largement meilleur plus on rajoute de processus. Il n’y
+plus en plus proches. L’hypothèse précédente commence à se confirmer, les performances sont maintenant
+mauvaises avec peu de processus MPI, et deviennent largement meilleur plus on rajoute de processus. Il n’y a
 maintenant que très peu de différences au-delà de 16 processus.
 
 <p align="center">
@@ -152,20 +152,20 @@ et FractalPlusPlus sont deux programmes différents, nous allons détailler les 
 2. Se rendre dans le dossier FractalSharp pour le projet C# et FractalPlusPlus pour le projet C++
 
 **FractalSharp (Windows)**
-1. Lancer le fichier batch pour installer MPI et SDL : `REQUIREMENTS/Install_SDL.bat`
-2. Installez Visual Studio, puis lancez le projet avec le fichier `FractalSharp.sln`
-3. Effectuer un clic droit sur la solution puis `Générer la solution`
-4. Rendez-vous dans le dossier `.\FractalSharp\bin\[Release|Debug]\net6.0-windows\`
+1. Lancer le fichier batch pour installer MPI et SDL : `REQUIREMENTS/Install SDL and MPI.bat`.
+2. Installez Visual Studio, puis lancez le projet avec le fichier `FractalSharp.sln`.
+3. Effectuer un clic droit sur la solution puis `Générer la solution`.
+4. Rendez-vous dans le dossier `.\FractalSharp\bin\[Release|Debug]\net8.0-windows7.0\`.
 
 **FractalPlusPlus (Windows)**
-1. Lancer le fichier batch pour installer MPI et SDL : `REQUIREMENTS/Install_SDL.bat`
-2. Installez Visual Studio, puis lancez le projet avec le fichier `FractalPlusPlus.sln`
-3. Effectuer un clic droit sur la solution puis `Générer la solution`
-4. Rendez-vous dans le dossier `.\x64\[Release|Debug]\`
+1. Lancer le fichier batch pour installer MPI et SDL : `REQUIREMENTS/Install SDL and MPI.bat`.
+2. Installez Visual Studio, puis lancez le projet avec le fichier `FractalPlusPlus.sln`.
+3. Effectuer un clic droit sur la solution puis `Générer la solution`.
+4. Rendez-vous dans le dossier `.\x64\[Release|Debug]\`.
 
 **FractalPlusPlus (Linux)**
-1. Exécuter le programme d’installation avec la commande `./build_linux.sh`
-2. Rendez-vous dans le dossier `.\build_linux\`
+1. Exécuter le programme d’installation avec la commande `./build_linux.sh`.
+2. Rendez-vous dans le dossier `.\build_linux\`.
 
 ### Démarrage + Données de tests
 Nous allons maintenant pouvoir lancer le programme. Sur chaque version, nous avons deux manières de lancer le
@@ -177,7 +177,7 @@ ligne de commande.
 **Sur Windows :**
 
 GUI → Lancer le programme **FractalSharp.exe** ou bien **FractalPlusPlusGUI.exe** (en fonction du langage de
-programmation souhaité.
+programmation souhaité).
 
 MPI → Lancer le programme FractalSharpMPI.exe ou bien FractalPlusPlusMPI.exe (en fonction du langage
 de programmation souhaité) de la manière suivante :
@@ -189,7 +189,7 @@ de programmation souhaité) de la manière suivante :
 
 GUI → Lancer le programme **./FractalPlusPlusGUI**
 
-MPI → Lancer le programme **./FractalPlusPlusMPI** de la manière suivante 
+MPI → Lancer le programme **./FractalPlusPlusMPI** de la manière suivante :
 
 `mpiexec -hostfile [NomFichierHost] -n [NombreProcessusMPI] ./FractalPlusPlusMPI [TailleX] [TailleY] [minComplexX] [maxComplexX]
 [minComplexY] [maxComplexY]`
