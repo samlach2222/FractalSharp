@@ -19,7 +19,7 @@ class Program
     /// <summary>
     /// Width of the main screen in pixel
     /// </summary>
-    private static readonly int screenWidth = Screen.PrimaryScreen.Bounds.Width;
+    private static readonly int screenWidth = Screen.PrimaryScreen?.Bounds.Width ?? throw new InvalidOperationException("Primary screen not detected.");
 
     /// <summary>
     /// Height of the main screen in pixel
@@ -70,13 +70,13 @@ class Program
     /// </summary>
     private static int nbProcessMpi = 1;
 
-
     /// <summary>
     /// Main method of the program
     /// </summary>
     /// <param name="args">Arguments passed in parameters (unused in our program)</param>
     static void Main()
     {
+        ApplicationConfiguration.Initialize(); // Needed to actually set the DPI awareness from csproj
         AskUserNbProcessMpi();
         InitializeForm(pixelWidth, pixelHeight);
         CalculateMandelbrot(0, 0, pixelWidth, pixelHeight); // Calculate the whole Mandelbrot
@@ -159,12 +159,12 @@ class Program
         ProcessStartInfo startInfo;
         if (nbProcessMpi == 1)
         {
-            args = new string[] { pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+            args = [pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture)];
             startInfo = new(exePath, string.Join(" ", args));
         }
         else
         {
-            args = new string[] { "-n", nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture) };
+            args = ["-n", nbProcessMpi.ToString(), exePath, pixelWidth.ToString(), pixelHeight.ToString(), P1XinAxe.ToString(CultureInfo.InvariantCulture), P2XinAxe.ToString(CultureInfo.InvariantCulture), P1YinAxe.ToString(CultureInfo.InvariantCulture), P2YinAxe.ToString(CultureInfo.InvariantCulture)];
             startInfo = new("mpiexec", string.Join(" ", args));
         }
 

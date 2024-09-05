@@ -26,7 +26,7 @@ class Program
         if (args.Length != 6)
         {
 #if DEBUG
-            args = new string[] { "1280", "720", "-2.0", "2.0", "-1.125", "1.125" };
+            args = ["1280", "720", "-2.0", "2.0", "-1.125", "1.125"];
 #else
             throw new ArgumentException("You must pass 6 arguments : number of pixels per row, number of pixels per column, minRangeX, maxRangeX, minRangeY, maxRangeY");
 #endif
