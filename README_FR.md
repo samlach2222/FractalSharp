@@ -1,6 +1,8 @@
 # FractalSharp
 
-[![Version du projet](https://img.shields.io/badge/version-1.0-purple.svg)](https://img.shields.io/badge "Version du projet")
+<a href="https://github.com/samlach2222/FractalSharp/releases/latest">
+  <img alt="Latest release of FractalSharp on GitHub" src="https://img.shields.io/github/v/release/samlach2222/FractalSharp?color=purple">
+</a>
 
 <p align="center">
   <img src="Project Repport/FractalSharp logo.svg" width="40%">
