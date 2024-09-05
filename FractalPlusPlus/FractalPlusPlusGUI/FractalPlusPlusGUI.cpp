@@ -116,14 +116,21 @@ void InitializeForm(int pixelWidth, int pixelHeight) {
 	
 	// Make sure SDL cleans up before exit
 	atexit(SDL_Quit);
+
+	// Set window name
+	SDL_WM_SetCaption("FractalPlusPlus", nullptr);
+
+    SDL_Surface* icon = SDL_LoadBMP("FractalSharp logo.bmp");
+	// Change green in icon as transparent
+	SDL_SetColorKey(icon, SDL_SRCCOLORKEY, SDL_MapRGB(icon->format, 0, 255, 0));
+	// Set window icon
+	SDL_WM_SetIcon(icon, nullptr);
+
 	// Create a new window
 	window = SDL_SetVideoMode(pixelWidth, pixelHeight, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
 	if (!window) {
 		throw std::runtime_error("Unable to set " + std::to_string(pixelWidth) + "x" + std::to_string(pixelHeight) + " video: " + SDL_GetError());
 	}
-	
-	// Change form name and icon
-	SDL_WM_SetCaption("FractalPlusPlus", nullptr);
 }
 
 /// <summary>
