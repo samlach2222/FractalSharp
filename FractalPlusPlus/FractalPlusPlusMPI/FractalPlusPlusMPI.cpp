@@ -117,14 +117,18 @@ int main(int argc, char* argv[])
 
 			if (i == numtasks - 1) { // Last task (nPerProc + numberOfPixels % nPerProc) pixels
 				localPixelsSize = nPerProc + numberOfPixels % nPerProc + 1;
-				localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
-				MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
 			}
 			else {
 				localPixelsSize = nPerProc + 1;
-				localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
-				MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
 			}
+			localPixels = (color*)malloc(sizeof(color) * localPixelsSize);
+			if (localPixels == nullptr) {
+				std::cerr << "Memory allocation failed for localPixels" << std::endl;
+				MPI_Abort(MPI_COMM_WORLD, 1);
+			}
+			MPI_Recv(localPixels, localPixelsSize, colorType, i, 10, MPI_COMM_WORLD, &status);
+
+#pragma warning(suppress:6011)
 			int rank = localPixels[0].r;
 			int posFirstValue = rank * nPerProc;
 

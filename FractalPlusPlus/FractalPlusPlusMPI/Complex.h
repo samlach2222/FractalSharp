@@ -17,7 +17,7 @@ private:
 public:
 	Complex();
 	Complex(double, double);
-	double Modulus();
+	double Modulus() const;
 	Complex NextIteration(Complex);
 };
 

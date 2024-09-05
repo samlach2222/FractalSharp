@@ -26,7 +26,7 @@ Complex::Complex(double real, double imag)
 /// Calculate the modulus of the current complex number
 /// </summary>
 /// <returns>modulus of the current complex number</returns>
-double Complex::Modulus()
+double Complex::Modulus() const
 {
 	return sqrt(real * real + imag * imag);
 }
