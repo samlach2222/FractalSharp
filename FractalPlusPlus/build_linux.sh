@@ -7,7 +7,7 @@ mkdir -p "$OUTPUT"
 \cp "FractalPlusPlusGUI/FractalPlusPlusGUI.cpp" "$OUTPUT" # GUI files
 \cp "FractalPlusPlusMPI/Complex.cpp" "FractalPlusPlusMPI/Complex.h" "FractalPlusPlusMPI/FractalPlusPlusMPI.cpp" "$OUTPUT" # MPI files
 
-cd "$OUTPUT"
+cd "$OUTPUT" || exit
 
 # Compile both projects
 mpic++ "FractalPlusPlusMPI.cpp" "Complex.cpp" -lSDL -Wall -I/urs/local/include -o "FractalPlusPlusMPI"
@@ -17,7 +17,7 @@ g++ "FractalPlusPlusGUI.cpp" -lSDL -Wall -I/urs/local/include -o "FractalPlusPlu
 if [[ -f "$IMAGE" ]]
 then
 	# Ask to delete the Mandelbrot image
-	read -p "Delete $IMAGE [Y/y for yes] : " -n1 deleteImage
+	read -r -p "Delete $IMAGE [Y/y for yes] : " -n1 deleteImage
 	echo # New line
 	if [[ $deleteImage =~ ^[Yy]$ ]]
 	then
@@ -26,7 +26,7 @@ then
 fi
 
 # Ask to run the program
-read -p "Run the program [Y/y for yes] : " -n1 runGui
+read -r -p "Run the program [Y/y for yes] : " -n1 runGui
 echo # New line
 if [[ $runGui =~ ^[Yy]$ ]]
 then
